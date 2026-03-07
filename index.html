@@ -1301,9 +1301,11 @@
                 apple.position.y = 2 + Math.sin(time * 4 + apple.userData.floatOffset) * 0.25;
                 apple.rotation.y += 0.03;
 
-                // Pulse glow
+                // Pulse glow - audio reactive with highs
                 if (apple.children[3]) {
-                    apple.children[3].scale.setScalar(1 + Math.sin(time * 6) * 0.15);
+                    const highsPulse = 1 + audioData.highs * 0.5;
+                    apple.children[3].scale.setScalar((1 + Math.sin(time * 6) * 0.15) * highsPulse);
+                    apple.children[3].material.opacity = 0.2 + audioData.highs * 0.3;
                 }
 
                 if (mannequin && !apple.userData.collected) {
@@ -1447,12 +1449,13 @@
                 const obstacle = obstacles[i];
                 obstacle.position.z += speed;
 
+                // Collision - tighter hitbox for fairness
                 if (mannequin && !isInvincible) {
                     const dx = obstacle.position.x - mannequin.position.x;
                     const dz = obstacle.position.z - mannequin.position.z;
                     const distance = Math.sqrt(dx * dx + dz * dz);
 
-                    if (distance < 1.8 && Math.abs(dz) < 1.5) {
+                    if (distance < 1.2 && Math.abs(dz) < 1.0) {
                         handleCollision(obstacle, i);
                         continue;
                     }
@@ -1600,13 +1603,14 @@
                 traveler.position.y = 1.8 + Math.sin(time * 2 + traveler.userData.wobbleOffset) * 0.1;
                 traveler.rotation.x = -0.15 + Math.sin(time * 3 + traveler.userData.wobbleOffset) * 0.03;
 
-                // Collision detection
+                // Collision detection - tighter hitbox for fairness
                 if (mannequin && !isInvincible) {
                     const dx = traveler.position.x - mannequin.position.x;
                     const dz = traveler.position.z - mannequin.position.z;
                     const distance = Math.sqrt(dx * dx + dz * dz);
 
-                    if (distance < 1.5 && Math.abs(dz) < 1.2) {
+                    // Only collide if very close (distance < 1.0) and z overlap
+                    if (distance < 1.0 && Math.abs(dz) < 0.8) {
                         handleTravelerCollision(traveler, i);
                         continue;
                     }
@@ -1726,7 +1730,8 @@
         }
 
         function getSpeedBlurForLevel() {
-            return 0.3 + (currentLevel - 1) * 0.06;
+            // Reduced blur for normal gameplay
+            return 0.15 + (currentLevel - 1) * 0.025;
         }
 
         // ============================================
@@ -1820,10 +1825,14 @@
 
         function updateSpeedLines() {
             const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 4 : roadSpeed * 2;
-            const targetOpacity = currentState === GameState.MIRACLE_MILE ? 0.6 : 0.25 + currentLevel * 0.03;
+            // Audio reactive - lines get brighter with highs
+            const audioBoost = audioData.highs * 0.3;
+            const targetOpacity = currentState === GameState.MIRACLE_MILE ? 0.6 : 0.2 + currentLevel * 0.02 + audioBoost;
 
-            speedLines.forEach(line => {
-                line.position.z += speed;
+            speedLines.forEach((line, i) => {
+                // Speed reacts to bass
+                const bassSpeed = speed * (1 + audioData.bass * 0.5);
+                line.position.z += bassSpeed;
 
                 if (line.position.z > 20) {
                     line.position.z = -200;
@@ -1834,6 +1843,10 @@
                 }
 
                 line.material.opacity += (targetOpacity - line.material.opacity) * 0.1;
+
+                // Scale lines with mids (makes them stretch)
+                const midsPulse = 1 + audioData.mids * 0.5;
+                line.scale.z = midsPulse;
             });
         }
 
@@ -1917,6 +1930,13 @@
             souls.length = 0;
             travelers.forEach(t => scene.remove(t));
             travelers.length = 0;
+
+            // Reset spawn timers so things don't spawn immediately
+            const now = Date.now();
+            lastCollectibleSpawn = now;
+            lastObstacleSpawn = now;
+            lastSoulSpawn = now;
+            lastTravelerSpawn = now;
 
             if (mannequin) mannequin.position.x = 0;
 
@@ -2008,10 +2028,27 @@
                     updateSpeedLines();
                     updateMiracleMile(deltaTime);
 
-                    bloomPass.strength = 0.7 + audioData.mids * 0.25;
+                    // AUDIO REACTIVE EFFECTS
+                    // Bloom pulses with mids
+                    bloomPass.strength = 0.7 + audioData.mids * 0.4;
 
-                    camera.position.x = Math.sin(currentTime * 0.0004) * 0.2;
-                    camera.rotation.z = Math.sin(currentTime * 0.0003) * 0.015;
+                    // Camera shake on bass hits
+                    const bassShake = audioData.bass * 0.15;
+                    camera.position.x = Math.sin(currentTime * 0.0004) * 0.2 + (Math.random() - 0.5) * bassShake;
+                    camera.position.y = 4 + audioData.bass * 0.3; // Subtle lift on bass
+                    camera.rotation.z = Math.sin(currentTime * 0.0003) * 0.015 + (Math.random() - 0.5) * bassShake * 0.1;
+
+                    // FOV pulse with bass (subtle breathing effect)
+                    if (currentState !== GameState.MIRACLE_MILE) {
+                        camera.fov = 75 + audioData.bass * 8;
+                        camera.updateProjectionMatrix();
+                    }
+
+                    // Speed blur reacts to audio energy
+                    const audioEnergy = (audioData.bass + audioData.mids + audioData.highs) / 3;
+                    if (currentState !== GameState.MIRACLE_MILE) {
+                        speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel() + audioEnergy * 0.1;
+                    }
                 } else {
                     updateClouds();
                     updateSpeedLines();
