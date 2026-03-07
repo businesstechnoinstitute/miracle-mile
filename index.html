@@ -678,7 +678,9 @@
         const NUM_SEGMENTS = 10;
         const BASE_ROAD_SPEED = 1.0;
         let roadSpeed = BASE_ROAD_SPEED;
-        let targetRoadSpeed = BASE_ROAD_SPEED; // For smooth transitions
+        let targetRoadSpeed = BASE_ROAD_SPEED;
+        let speedMultiplier = 1.0; // For Miracle Mile boost
+        let targetSpeedMultiplier = 1.0;
 
         const trackColors = [
             0x3A3A4A, 0x353550, 0x303058, 0x2A2A5A, 0x252560,
@@ -754,10 +756,21 @@
         }
 
         function updateRoad() {
-            // Smooth speed transition
-            roadSpeed += (targetRoadSpeed - roadSpeed) * 0.02;
+            // Speed UP is instant, slow DOWN is gradual
+            if (targetRoadSpeed > roadSpeed) {
+                roadSpeed = targetRoadSpeed; // Instant speed up
+            } else if (targetRoadSpeed < roadSpeed) {
+                roadSpeed += (targetRoadSpeed - roadSpeed) * 0.02; // Gradual slow down
+            }
 
-            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            // Smooth multiplier transitions (for Miracle Mile boost/slowdown)
+            if (targetSpeedMultiplier > speedMultiplier) {
+                speedMultiplier = targetSpeedMultiplier; // Instant boost
+            } else if (targetSpeedMultiplier < speedMultiplier) {
+                speedMultiplier += (targetSpeedMultiplier - speedMultiplier) * 0.015; // Gradual return
+            }
+
+            const speed = roadSpeed * speedMultiplier;
 
             roadSegments.forEach(segment => {
                 segment.position.z += speed;
@@ -1012,7 +1025,7 @@
         }
 
         function updateSouls() {
-            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const speed = roadSpeed * speedMultiplier;
             const time = Date.now() * 0.001;
 
             for (let i = souls.length - 1; i >= 0; i--) {
@@ -1169,7 +1182,7 @@
         }
 
         function updateClouds() {
-            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const speed = roadSpeed * speedMultiplier;
             const time = Date.now() * 0.001;
 
             clouds.forEach(cloud => {
@@ -1267,7 +1280,7 @@
         }
 
         function updateCollectibles() {
-            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const speed = roadSpeed * speedMultiplier;
             const time = Date.now() * 0.001;
 
             for (let i = collectibles.length - 1; i >= 0; i--) {
@@ -1417,7 +1430,7 @@
         }
 
         function updateObstacles() {
-            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const speed = roadSpeed * speedMultiplier;
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obstacle = obstacles[i];
@@ -1562,7 +1575,7 @@
         }
 
         function updateTravelers() {
-            const playerSpeed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const playerSpeed = roadSpeed * speedMultiplier;
             const time = Date.now() * 0.001;
 
             for (let i = travelers.length - 1; i >= 0; i--) {
@@ -1722,6 +1735,9 @@
             miracleMilesCount++;
             isInvincible = true;
 
+            // Instant speed boost
+            targetSpeedMultiplier = 2.5;
+
             playBoostSound();
 
             document.getElementById('miracle-flash').classList.add('active');
@@ -1760,6 +1776,10 @@
             currentState = GameState.PLAYING;
             isInvincible = false;
             memoryClarity = 0;
+
+            // Gradual slowdown (targetSpeedMultiplier -> 1.0 handled in updateRoad)
+            targetSpeedMultiplier = 1.0;
+
             updateUI();
 
             bloomPass.strength = 0.7;
@@ -1877,6 +1897,8 @@
             momentsForNextLevel = 10;
             roadSpeed = BASE_ROAD_SPEED;
             targetRoadSpeed = BASE_ROAD_SPEED;
+            speedMultiplier = 1.0;
+            targetSpeedMultiplier = 1.0;
             obstacleSpawnInterval = 3000;
             collectibleSpawnInterval = 1500;
             soulSpawnInterval = 5000;
