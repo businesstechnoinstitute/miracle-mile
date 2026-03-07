@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Miracle Mile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F4FF 50%, #FFFFFF 100%);
+            font-family: 'Georgia', serif;
+        }
+
+        #game-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .hud.visible { opacity: 1; }
+
+        .hud-item {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #4A6B8A;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .hud-center {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4A6B8A;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .level-text {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lives-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .life {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4);
+            border-radius: 50%;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .life.lost {
+            opacity: 0.2;
+            transform: scale(0.7);
+        }
+
+        .memory-bar-container {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 300px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .memory-bar-container.visible { opacity: 1; }
+
+        .memory-label {
+            text-align: center;
+            color: #4A6B8A;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .memory-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .memory-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #87CEEB, #9B59B6, #FF69B4);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(180deg, #B8D4E8 0%, #E8F4FC 50%, #FFFFFF 100%);
+            z-index: 200;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        .title {
+            font-size: 42px;
+            color: #4A6B8A;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #7A9BB8;
+            text-align: center;
+            margin-bottom: 50px;
+            font-style: italic;
+        }
+
+        .start-button {
+            padding: 18px 45px;
+            font-size: 18px;
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #87CEEB, #9BB8D4);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 6px 25px rgba(135, 206, 235, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(135, 206, 235, 0.5);
+        }
+
+        .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(180deg, #D4B8E8 0%, #F4E8FC 50%, #FFFFFF 100%);
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .game-over-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .game-over-title {
+            font-size: 36px;
+            color: #6A4B8A;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stats { text-align: center; margin-bottom: 40px; }
+        .stat-item { font-size: 18px; color: #7A6B9B; margin: 10px 0; }
+        .stat-value { font-size: 24px; color: #4A3B6A; font-weight: bold; }
+
+        .restart-button {
+            padding: 18px 45px;
+            font-size: 18px;
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #9B6BC1, #7A4BA1);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 25px rgba(155, 107, 193, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .miracle-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(155,89,182,0.3) 100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 150;
+            transition: opacity 0.3s ease;
+        }
+
+        .miracle-flash.active { opacity: 1; }
+
+        .miracle-text {
+            position: fixed;
+            top: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            color: #9B59B6;
+            text-shadow: 0 0 30px rgba(155, 89, 182, 0.8), 0 0 60px rgba(155, 89, 182, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 160;
+            letter-spacing: 4px;
+            transition: opacity 0.5s ease;
+            white-space: nowrap;
+        }
+
+        .miracle-text.visible { opacity: 1; }
+
+        .level-up-text {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            color: #667eea;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 160;
+            letter-spacing: 3px;
+            transition: opacity 0.4s ease;
+        }
+
+        .level-up-text.visible { opacity: 1; }
+
+        .audio-note {
+            font-size: 12px;
+            color: #9BB8D4;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas"></canvas>
+
+    <div class="ui-overlay">
+        <div class="hud" id="hud">
+            <div class="hud-item">
+                <div class="lives-container">
+                    <span style="margin-right: 8px;">Lives:</span>
+                    <div class="life" id="life1"></div>
+                    <div class="life" id="life2"></div>
+                    <div class="life" id="life3"></div>
+                </div>
+            </div>
+            <div class="hud-center">
+                <span class="level-text">Level <span id="level-num">1</span></span>
+            </div>
+            <div class="hud-item">
+                Apples: <span id="moments-count">0</span>
+            </div>
+        </div>
+
+        <div class="memory-bar-container" id="memory-bar-container">
+            <div class="memory-label">Memory Clarity: <span id="memory-percent">0</span>%</div>
+            <div class="memory-bar">
+                <div class="memory-fill" id="memory-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="start-screen" id="start-screen">
+        <h1 class="title">MIRACLE MILE</h1>
+        <p class="subtitle">A journey through memory</p>
+        <button class="start-button" id="start-button">Begin Journey</button>
+        <p class="audio-note">Best experienced with headphones</p>
+    </div>
+
+    <div class="game-over-screen" id="game-over-screen">
+        <h1 class="game-over-title">Journey Ended</h1>
+        <div class="stats">
+            <div class="stat-item">Level Reached</div>
+            <div class="stat-value" id="final-level">1</div>
+            <div class="stat-item" style="margin-top: 15px;">Apples Collected</div>
+            <div class="stat-value" id="final-moments">0</div>
+            <div class="stat-item" style="margin-top: 15px;">Miracles Achieved</div>
+            <div class="stat-value" id="final-miracles">0</div>
+        </div>
+        <button class="restart-button" id="restart-button">Revisit Memories</button>
+    </div>
+
+    <div class="miracle-flash" id="miracle-flash"></div>
+    <div class="miracle-text" id="miracle-text">MIRACLE ACHIEVED</div>
+    <div class="level-up-text" id="level-up-text">LEVEL UP</div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        const GameState = {
+            START: 'start',
+            PLAYING: 'playing',
+            MIRACLE_MILE: 'miracle_mile',
+            GAME_OVER: 'game_over'
+        };
+
+        let currentState = GameState.START;
+        let lives = 3;
+        let moments = 0;
+        let memoryClarity = 0;
+        let miracleMilesCount = 0;
+        let isInvincible = false;
+        let miracleMileTimer = 0;
+
+        // Level system
+        let currentLevel = 1;
+        const MAX_LEVEL = 10;
+        let momentsForNextLevel = 10;
+
+        // ============================================
+        // THREE.JS SETUP
+        // ============================================
+        const canvas = document.getElementById('game-canvas');
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
+            antialias: true,
+            alpha: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.4;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.FogExp2(0xC8E0F0, 0.006);
+
+        // Sky colors per level
+        const skyColors = [
+            { bg: 0x87CEEB, fog: 0xC8E0F0 }, // Level 1 - Light blue
+            { bg: 0x7EC8E3, fog: 0xB8D8E8 }, // Level 2
+            { bg: 0x6BB3D9, fog: 0xA0C8DC }, // Level 3
+            { bg: 0x5A9FCC, fog: 0x88B8D0 }, // Level 4
+            { bg: 0x4A8ABF, fog: 0x70A8C4 }, // Level 5
+            { bg: 0x3D75B0, fog: 0x5898B8 }, // Level 6 - Deeper blue
+            { bg: 0x3560A0, fog: 0x4888AC }, // Level 7
+            { bg: 0x2E4A90, fog: 0x3878A0 }, // Level 8
+            { bg: 0x283580, fog: 0x286894 }, // Level 9
+            { bg: 0x1E2570, fog: 0x185888 }  // Level 10 - Deep dusk blue
+        ];
+
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            600
+        );
+        camera.position.set(0, 4, 3);
+        camera.lookAt(0, 1.5, -50);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        directionalLight.position.set(5, 15, 5);
+        scene.add(directionalLight);
+
+        const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0xE8D4C4, 0.6);
+        scene.add(hemisphereLight);
+
+        const rimLight = new THREE.DirectionalLight(0xFFE4E1, 0.6);
+        rimLight.position.set(-5, 5, -5);
+        scene.add(rimLight);
+
+        // ============================================
+        // POST-PROCESSING
+        // ============================================
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            0.7, 0.5, 0.6
+        );
+        composer.addPass(bloomPass);
+
+        const SpeedShader = {
+            uniforms: {
+                'tDiffuse': { value: null },
+                'speedBlur': { value: 0.3 },
+                'time': { value: 0.0 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform float speedBlur;
+                uniform float time;
+                varying vec2 vUv;
+
+                void main() {
+                    vec2 center = vec2(0.5, 0.6);
+                    vec2 dir = vUv - center;
+                    float dist = length(dir);
+
+                    vec4 color = vec4(0.0);
+                    float samples = 12.0;
+                    for (float i = 0.0; i < 12.0; i++) {
+                        float scale = 1.0 - speedBlur * (i / samples) * 0.15;
+                        vec2 uv = center + dir * scale;
+                        color += texture2D(tDiffuse, uv);
+                    }
+                    color /= samples;
+
+                    float vignette = 1.0 - dist * speedBlur * 0.4;
+                    color.rgb *= max(vignette, 0.5);
+
+                    gl_FragColor = color;
+                }
+            `
+        };
+
+        const speedPass = new ShaderPass(SpeedShader);
+        composer.addPass(speedPass);
+
+        // ============================================
+        // AUDIO SYSTEM - FIXED
+        // ============================================
+        let audioContext;
+        let analyser;
+        let audioElement;
+        let audioSource;
+        let audioData = { bass: 0, mids: 0, highs: 0 };
+        let audioConnected = false;
+        let musicPlaying = false;
+
+        function initAudio() {
+            // Single audio context for everything
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 512;
+            analyser.smoothingTimeConstant = 0.8;
+
+            audioElement = document.createElement('audio');
+            audioElement.loop = true;
+            audioElement.volume = 0.8;
+            audioElement.preload = 'auto';
+
+            audioSource = audioContext.createMediaElementSource(audioElement);
+            audioSource.connect(analyser);
+            analyser.connect(audioContext.destination);
+            audioConnected = true;
+
+            audioElement.src = 'assets/music.mp3';
+
+            console.log('Audio system initialized');
+        }
+
+        function updateAudioData() {
+            if (!analyser || !audioConnected || !musicPlaying) {
+                const time = Date.now() * 0.001;
+                audioData.bass = 0.4 + Math.sin(time * 1.5) * 0.25;
+                audioData.mids = 0.35 + Math.sin(time * 2.5) * 0.2;
+                audioData.highs = 0.3 + Math.sin(time * 4) * 0.15;
+                return;
+            }
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            let hasData = false;
+            for (let i = 0; i < dataArray.length; i++) {
+                if (dataArray[i] > 0) { hasData = true; break; }
+            }
+
+            if (!hasData) {
+                const time = Date.now() * 0.001;
+                audioData.bass = 0.4 + Math.sin(time * 1.5) * 0.25;
+                audioData.mids = 0.35 + Math.sin(time * 2.5) * 0.2;
+                audioData.highs = 0.3 + Math.sin(time * 4) * 0.15;
+                return;
+            }
+
+            const third = Math.floor(dataArray.length / 3);
+            let bassSum = 0, midsSum = 0, highsSum = 0;
+
+            for (let i = 0; i < third; i++) bassSum += dataArray[i];
+            for (let i = third; i < third * 2; i++) midsSum += dataArray[i];
+            for (let i = third * 2; i < dataArray.length; i++) highsSum += dataArray[i];
+
+            audioData.bass = (bassSum / third) / 255;
+            audioData.mids = (midsSum / third) / 255;
+            audioData.highs = (highsSum / third) / 255;
+        }
+
+        async function playAudio() {
+            if (audioContext && audioContext.state === 'suspended') {
+                await audioContext.resume();
+                console.log('Audio context resumed');
+            }
+
+            if (audioElement) {
+                try {
+                    await audioElement.play();
+                    musicPlaying = true;
+                    console.log('Music started playing!');
+                } catch (e) {
+                    console.log('Music play failed:', e.message);
+                    musicPlaying = false;
+                }
+            }
+        }
+
+        function stopAudio() {
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                musicPlaying = false;
+            }
+        }
+
+        // ============================================
+        // SOUND EFFECTS - File based
+        // ============================================
+        let collectSound, boostSound, hitSound;
+
+        function initSoundEffects() {
+            // Preload sound effects
+            collectSound = new Audio('assets/collect.mp3');
+            collectSound.volume = 0.6;
+            collectSound.preload = 'auto';
+
+            boostSound = new Audio('assets/boost.mp3');
+            boostSound.volume = 0.7;
+            boostSound.preload = 'auto';
+
+            hitSound = new Audio('assets/hit.mp3');
+            hitSound.volume = 0.6;
+            hitSound.preload = 'auto';
+
+            console.log('Sound effects initialized');
+        }
+
+        function playCollectSound() {
+            if (collectSound) {
+                collectSound.currentTime = 0;
+                collectSound.play().catch(e => console.log('Collect sound error:', e));
+            }
+        }
+
+        function playSoulAbsorbSound() {
+            // Use collect sound for souls too (or you can add a separate soul.mp3)
+            if (collectSound) {
+                collectSound.currentTime = 0;
+                collectSound.play().catch(e => console.log('Soul sound error:', e));
+            }
+        }
+
+        function playBoostSound() {
+            if (boostSound) {
+                boostSound.currentTime = 0;
+                boostSound.play().catch(e => console.log('Boost sound error:', e));
+            }
+        }
+
+        function playLevelUpSound() {
+            // Use a new Audio instance for level up sound
+            try {
+                const levelSound = new Audio('assets/boost.mp3');
+                levelSound.volume = 0.4;
+                levelSound.playbackRate = 1.3;
+                levelSound.play().catch(e => console.log('Level sound error:', e));
+            } catch (e) {
+                console.log('Level up sound failed:', e);
+            }
+        }
+
+        function playHitSound() {
+            if (hitSound) {
+                hitSound.currentTime = 0;
+                hitSound.play().catch(e => console.log('Hit sound error:', e));
+            }
+        }
+
+        // ============================================
+        // ROAD SYSTEM
+        // ============================================
+        const roadSegments = [];
+        const ROAD_WIDTH = 12;
+        const ROAD_LENGTH = 50;
+        const NUM_SEGMENTS = 10;
+        const BASE_ROAD_SPEED = 1.0;
+        let roadSpeed = BASE_ROAD_SPEED;
+
+        const trackColors = [
+            0x3A3A4A, 0x353550, 0x303058, 0x2A2A5A, 0x252560,
+            0x202065, 0x1A1A68, 0x15156B, 0x101070, 0x0A0A75
+        ];
+
+        function createRoadSegment(zPosition) {
+            const group = new THREE.Group();
+
+            const roadGeometry = new THREE.PlaneGeometry(ROAD_WIDTH, ROAD_LENGTH);
+            const roadMaterial = new THREE.MeshStandardMaterial({
+                color: trackColors[0],
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            const road = new THREE.Mesh(roadGeometry, roadMaterial);
+            road.rotation.x = -Math.PI / 2;
+            road.userData.isRoad = true;
+            group.add(road);
+
+            const dashCount = 8;
+            const dashLength = 4;
+            const dashGap = 2;
+            for (let i = 0; i < dashCount; i++) {
+                const dash = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.2, dashLength),
+                    new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+                );
+                dash.rotation.x = -Math.PI / 2;
+                dash.position.set(0, 0.02, -ROAD_LENGTH / 2 + dashLength / 2 + i * (dashLength + dashGap));
+                group.add(dash);
+            }
+
+            const edgeMat = new THREE.MeshBasicMaterial({ color: 0xFFD700 });
+            const leftEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.15, ROAD_LENGTH), edgeMat);
+            leftEdge.rotation.x = -Math.PI / 2;
+            leftEdge.position.set(-ROAD_WIDTH / 2 + 0.4, 0.02, 0);
+            group.add(leftEdge);
+
+            const rightEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.15, ROAD_LENGTH), edgeMat);
+            rightEdge.rotation.x = -Math.PI / 2;
+            rightEdge.position.set(ROAD_WIDTH / 2 - 0.4, 0.02, 0);
+            group.add(rightEdge);
+
+            group.position.z = zPosition;
+            scene.add(group);
+            return group;
+        }
+
+        function updateRoadColor() {
+            const colorIndex = Math.min(currentLevel - 1, trackColors.length - 1);
+            const color = new THREE.Color(trackColors[colorIndex]);
+
+            roadSegments.forEach(segment => {
+                segment.children.forEach(child => {
+                    if (child.userData.isRoad) {
+                        child.material.color.copy(color);
+                    }
+                });
+            });
+        }
+
+        function updateSkyColor() {
+            const colorIndex = Math.min(currentLevel - 1, skyColors.length - 1);
+            scene.background = new THREE.Color(skyColors[colorIndex].bg);
+            scene.fog.color = new THREE.Color(skyColors[colorIndex].fog);
+        }
+
+        function initRoad() {
+            for (let i = 0; i < NUM_SEGMENTS; i++) {
+                roadSegments.push(createRoadSegment(-i * ROAD_LENGTH));
+            }
+        }
+
+        function updateRoad() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+
+            roadSegments.forEach(segment => {
+                segment.position.z += speed;
+                if (segment.position.z > ROAD_LENGTH) {
+                    segment.position.z -= NUM_SEGMENTS * ROAD_LENGTH;
+                }
+            });
+        }
+
+        // ============================================
+        // MANNEQUIN
+        // ============================================
+        let mannequin;
+        let mannequinGroup;
+        let mannequinTrail = [];
+        const TRAIL_LENGTH = 25;
+        let mannequinTargetX = 0;
+        let mannequinCurrentX = 0;
+
+        function createMannequin() {
+            mannequinGroup = new THREE.Group();
+
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0xF0E6DC,
+                roughness: 0.3,
+                metalness: 0.1,
+                flatShading: false
+            });
+
+            const glossMaterial = new THREE.MeshStandardMaterial({
+                color: 0xF5EDE6,
+                roughness: 0.15,
+                metalness: 0.2,
+                emissive: 0xFFE4E1,
+                emissiveIntensity: 0.15,
+                flatShading: false
+            });
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.14, 64, 64);
+            headGeometry.scale(0.9, 1, 0.85);
+            const head = new THREE.Mesh(headGeometry, glossMaterial);
+            head.position.set(0, 0.08, -0.9);
+            mannequinGroup.add(head);
+
+            // Neck
+            const neckGeometry = new THREE.CylinderGeometry(0.06, 0.07, 0.12, 32);
+            const neck = new THREE.Mesh(neckGeometry, bodyMaterial);
+            neck.position.set(0, 0.05, -0.75);
+            neck.rotation.x = Math.PI / 2 * 0.9;
+            mannequinGroup.add(neck);
+
+            // Torso
+            const torsoGeometry = new THREE.CapsuleGeometry(0.15, 0.5, 32, 64);
+            const torso = new THREE.Mesh(torsoGeometry, bodyMaterial);
+            torso.position.set(0, 0, -0.35);
+            torso.rotation.x = Math.PI / 2;
+            mannequinGroup.add(torso);
+
+            // Chest
+            const chestGeometry = new THREE.SphereGeometry(0.18, 32, 32);
+            chestGeometry.scale(1, 0.6, 0.8);
+            const chest = new THREE.Mesh(chestGeometry, bodyMaterial);
+            chest.position.set(0, 0.05, -0.55);
+            mannequinGroup.add(chest);
+
+            // Arms
+            const armGeometry = new THREE.CapsuleGeometry(0.045, 0.5, 16, 32);
+
+            const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            leftArm.position.set(-0.15, 0.08, -0.85);
+            leftArm.rotation.x = Math.PI / 2 * 0.95;
+            leftArm.rotation.z = 0.15;
+            mannequinGroup.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            rightArm.position.set(0.15, 0.08, -0.85);
+            rightArm.rotation.x = Math.PI / 2 * 0.95;
+            rightArm.rotation.z = -0.15;
+            mannequinGroup.add(rightArm);
+
+            // Hands
+            const handGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+            handGeometry.scale(0.8, 1, 1.2);
+
+            const leftHand = new THREE.Mesh(handGeometry, bodyMaterial);
+            leftHand.position.set(-0.18, 0.1, -1.15);
+            mannequinGroup.add(leftHand);
+
+            const rightHand = new THREE.Mesh(handGeometry, bodyMaterial);
+            rightHand.position.set(0.18, 0.1, -1.15);
+            mannequinGroup.add(rightHand);
+
+            // Hips
+            const hipGeometry = new THREE.SphereGeometry(0.14, 32, 32);
+            hipGeometry.scale(1.1, 0.7, 0.9);
+            const hips = new THREE.Mesh(hipGeometry, bodyMaterial);
+            hips.position.set(0, -0.02, -0.05);
+            mannequinGroup.add(hips);
+
+            // Legs
+            const legGeometry = new THREE.CapsuleGeometry(0.055, 0.55, 16, 32);
+
+            const leftLeg = new THREE.Mesh(legGeometry, bodyMaterial);
+            leftLeg.position.set(-0.08, -0.05, 0.35);
+            leftLeg.rotation.x = Math.PI / 2 * 1.05;
+            mannequinGroup.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, bodyMaterial);
+            rightLeg.position.set(0.08, -0.05, 0.35);
+            rightLeg.rotation.x = Math.PI / 2 * 1.05;
+            mannequinGroup.add(rightLeg);
+
+            // Feet
+            const footGeometry = new THREE.SphereGeometry(0.05, 32, 32);
+            footGeometry.scale(0.7, 0.6, 1.3);
+
+            const leftFoot = new THREE.Mesh(footGeometry, bodyMaterial);
+            leftFoot.position.set(-0.1, -0.08, 0.7);
+            mannequinGroup.add(leftFoot);
+
+            const rightFoot = new THREE.Mesh(footGeometry, bodyMaterial);
+            rightFoot.position.set(0.1, -0.08, 0.7);
+            mannequinGroup.add(rightFoot);
+
+            mannequinGroup.position.set(0, 2, -5);
+            mannequinGroup.rotation.x = -0.15;
+            mannequinGroup.scale.setScalar(1.8);
+
+            scene.add(mannequinGroup);
+            mannequin = mannequinGroup;
+
+            // Trail
+            for (let i = 0; i < TRAIL_LENGTH; i++) {
+                const trailGeometry = new THREE.SphereGeometry(0.12 - i * 0.004, 16, 16);
+                const trailMaterial = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0.55 + i * 0.02, 0.3, 0.9),
+                    transparent: true,
+                    opacity: 0.35 * (1 - i / TRAIL_LENGTH)
+                });
+                const particle = new THREE.Mesh(trailGeometry, trailMaterial);
+                particle.position.copy(mannequinGroup.position);
+                scene.add(particle);
+                mannequinTrail.push(particle);
+            }
+        }
+
+        function updateMannequin(deltaTime) {
+            if (!mannequin) return;
+
+            mannequinCurrentX += (mannequinTargetX - mannequinCurrentX) * 0.06;
+            mannequin.position.x = mannequinCurrentX;
+
+            const maxX = ROAD_WIDTH / 2 - 2;
+            mannequin.position.x = Math.max(-maxX, Math.min(maxX, mannequin.position.x));
+            mannequinCurrentX = mannequin.position.x;
+
+            const bankAmount = (mannequinTargetX - mannequinCurrentX) * 0.2;
+            mannequin.rotation.z = -bankAmount;
+
+            const time = Date.now() * 0.001;
+            mannequin.position.y = 2 + Math.sin(time * 1.5) * 0.08;
+            mannequin.rotation.x = -0.15 + Math.sin(time * 2) * 0.02;
+
+            const glowIntensity = 0.15 + audioData.mids * 0.15;
+            mannequin.children.forEach(child => {
+                if (child.material && child.material.emissiveIntensity !== undefined) {
+                    child.material.emissiveIntensity = glowIntensity;
+                }
+            });
+
+            for (let i = mannequinTrail.length - 1; i > 0; i--) {
+                mannequinTrail[i].position.lerp(mannequinTrail[i - 1].position, 0.2);
+            }
+            mannequinTrail[0].position.set(
+                mannequin.position.x,
+                mannequin.position.y - 0.2,
+                mannequin.position.z + 1.5
+            );
+        }
+
+        // ============================================
+        // WANDERING SOULS
+        // ============================================
+        const souls = [];
+        let soulSpawnInterval = 5000;
+        let lastSoulSpawn = 0;
+
+        function createSoulGeometry() {
+            const group = new THREE.Group();
+
+            const soulMaterial = new THREE.MeshStandardMaterial({
+                color: 0xAADDFF,
+                roughness: 0.3,
+                metalness: 0.5,
+                transparent: true,
+                opacity: 0.7,
+                emissive: 0x4488CC,
+                emissiveIntensity: 0.5
+            });
+
+            const bodyGeometry = new THREE.CapsuleGeometry(0.12, 0.4, 16, 32);
+            const body = new THREE.Mesh(bodyGeometry, soulMaterial);
+            body.rotation.x = Math.PI / 2;
+            group.add(body);
+
+            const headGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const head = new THREE.Mesh(headGeometry, soulMaterial);
+            head.position.set(0, 0.05, -0.35);
+            group.add(head);
+
+            for (let i = 0; i < 5; i++) {
+                const wispGeometry = new THREE.SphereGeometry(0.08 - i * 0.012, 16, 16);
+                const wispMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xAADDFF,
+                    transparent: true,
+                    opacity: 0.4 - i * 0.07
+                });
+                const wisp = new THREE.Mesh(wispGeometry, wispMaterial);
+                wisp.position.set(0, -0.02, 0.15 + i * 0.12);
+                group.add(wisp);
+            }
+
+            const glowGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x88CCFF,
+                transparent: true,
+                opacity: 0.15
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            group.add(glow);
+
+            return group;
+        }
+
+        function spawnSoul() {
+            const soul = createSoulGeometry();
+
+            const x = (Math.random() - 0.5) * (ROAD_WIDTH - 4);
+            soul.position.set(x, 1.8, -150);
+            soul.scale.setScalar(1.5);
+
+            soul.userData = {
+                absorbed: false,
+                driftSpeed: (Math.random() - 0.5) * 0.03,
+                floatOffset: Math.random() * Math.PI * 2,
+                baseX: x
+            };
+
+            scene.add(soul);
+            souls.push(soul);
+        }
+
+        function updateSouls() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const time = Date.now() * 0.001;
+
+            for (let i = souls.length - 1; i >= 0; i--) {
+                const soul = souls[i];
+
+                soul.position.z += speed * 0.6;
+
+                soul.userData.baseX += soul.userData.driftSpeed;
+                const maxX = ROAD_WIDTH / 2 - 2;
+                if (Math.abs(soul.userData.baseX) > maxX) {
+                    soul.userData.driftSpeed *= -1;
+                }
+                soul.position.x = soul.userData.baseX + Math.sin(time * 2 + soul.userData.floatOffset) * 0.5;
+                soul.position.y = 1.8 + Math.sin(time * 3 + soul.userData.floatOffset) * 0.3;
+                soul.rotation.y = Math.sin(time + soul.userData.floatOffset) * 0.3;
+
+                if (mannequin && !soul.userData.absorbed) {
+                    const distance = soul.position.distanceTo(mannequin.position);
+                    if (distance < 2) {
+                        absorbSoul(soul, i);
+                        continue;
+                    }
+                }
+
+                if (soul.position.z > 15) {
+                    scene.remove(soul);
+                    souls.splice(i, 1);
+                }
+            }
+
+            const now = Date.now();
+            if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
+                if (now - lastSoulSpawn > soulSpawnInterval) {
+                    spawnSoul();
+                    lastSoulSpawn = now;
+                }
+            }
+        }
+
+        function absorbSoul(soul, index) {
+            soul.userData.absorbed = true;
+            createSoulAbsorbEffect(soul.position);
+            playSoulAbsorbSound();
+
+            moments += 2;
+            memoryClarity = Math.min(100, memoryClarity + 15);
+            checkLevelUp();
+            updateUI();
+
+            if (memoryClarity >= 100 && currentState === GameState.PLAYING) {
+                triggerMiracleMile();
+            }
+
+            scene.remove(soul);
+            souls.splice(index, 1);
+        }
+
+        function createSoulAbsorbEffect(position) {
+            const particleCount = 40;
+            const particles = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                const geometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0.55 + Math.random() * 0.1, 0.6, 0.7),
+                    transparent: true,
+                    opacity: 1
+                });
+                const particle = new THREE.Mesh(geometry, material);
+                particle.position.copy(position);
+                particle.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.4,
+                    Math.random() * 0.3 + 0.1,
+                    (Math.random() - 0.5) * 0.4
+                );
+                particle.userData.life = 1.0;
+                scene.add(particle);
+                particles.push(particle);
+            }
+
+            const animateParticles = () => {
+                let allDead = true;
+                particles.forEach(p => {
+                    if (p.userData.life > 0) {
+                        allDead = false;
+                        p.userData.life -= 0.03;
+                        p.position.add(p.userData.velocity);
+                        p.userData.velocity.y -= 0.005;
+                        p.material.opacity = p.userData.life;
+                        p.scale.setScalar(0.5 + p.userData.life * 0.5);
+                    } else if (p.parent) {
+                        scene.remove(p);
+                    }
+                });
+                if (!allDead) requestAnimationFrame(animateParticles);
+            };
+            animateParticles();
+        }
+
+        // ============================================
+        // CLOUDS
+        // ============================================
+        const clouds = [];
+        const CLOUD_COUNT = 150;
+
+        function createClouds() {
+            for (let i = 0; i < CLOUD_COUNT; i++) {
+                const cloudGroup = new THREE.Group();
+
+                const numPuffs = 3 + Math.floor(Math.random() * 4);
+                for (let j = 0; j < numPuffs; j++) {
+                    const puffGeometry = new THREE.SphereGeometry(1, 16, 16);
+                    const puffMaterial = new THREE.MeshStandardMaterial({
+                        color: 0xFFFFFF,
+                        roughness: 1,
+                        metalness: 0,
+                        transparent: true,
+                        opacity: 0.85
+                    });
+                    const puff = new THREE.Mesh(puffGeometry, puffMaterial);
+
+                    const scale = 0.5 + Math.random() * 1;
+                    puff.scale.set(
+                        scale * (1 + Math.random() * 0.5),
+                        scale * (0.6 + Math.random() * 0.4),
+                        scale * (0.8 + Math.random() * 0.4)
+                    );
+                    puff.position.set(
+                        (Math.random() - 0.5) * 2,
+                        (Math.random() - 0.5) * 1,
+                        (Math.random() - 0.5) * 1.5
+                    );
+                    cloudGroup.add(puff);
+                }
+
+                const side = Math.random() > 0.5 ? 1 : -1;
+                const x = side * (15 + Math.random() * 50);
+                const y = 5 + Math.random() * 35;
+                const z = -Math.random() * 400;
+
+                cloudGroup.position.set(x, y, z);
+
+                const baseScale = 2 + Math.random() * 4;
+                cloudGroup.scale.setScalar(baseScale);
+                cloudGroup.userData = {
+                    baseScale: baseScale,
+                    baseY: y,
+                    speed: 0.3 + Math.random() * 0.3
+                };
+
+                scene.add(cloudGroup);
+                clouds.push(cloudGroup);
+            }
+        }
+
+        function updateClouds() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const time = Date.now() * 0.001;
+
+            clouds.forEach(cloud => {
+                cloud.position.z += speed * cloud.userData.speed;
+
+                if (cloud.position.z > 100) {
+                    cloud.position.z = -400 - Math.random() * 100;
+                    const side = Math.random() > 0.5 ? 1 : -1;
+                    cloud.position.x = side * (15 + Math.random() * 50);
+                    cloud.position.y = 5 + Math.random() * 35;
+                }
+
+                cloud.position.y = cloud.userData.baseY + Math.sin(time * 0.5 + cloud.position.x) * 0.5;
+
+                const pulse = 1 + audioData.bass * 0.1;
+                cloud.scale.setScalar(cloud.userData.baseScale * pulse);
+
+                cloud.rotation.y += 0.001;
+            });
+        }
+
+        // ============================================
+        // RED APPLES (Collectibles)
+        // ============================================
+        const collectibles = [];
+        let collectibleSpawnInterval = 1500;
+        let lastCollectibleSpawn = 0;
+
+        function createApple() {
+            const group = new THREE.Group();
+
+            // Apple body
+            const appleGeometry = new THREE.SphereGeometry(0.35, 32, 32);
+            appleGeometry.scale(1, 0.9, 1);
+            const appleMaterial = new THREE.MeshStandardMaterial({
+                color: 0xCC2222,
+                roughness: 0.3,
+                metalness: 0.1,
+                emissive: 0x660000,
+                emissiveIntensity: 0.2
+            });
+            const apple = new THREE.Mesh(appleGeometry, appleMaterial);
+            group.add(apple);
+
+            // Stem
+            const stemGeometry = new THREE.CylinderGeometry(0.03, 0.04, 0.15, 8);
+            const stemMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4A3728,
+                roughness: 0.8
+            });
+            const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+            stem.position.y = 0.35;
+            stem.rotation.z = 0.2;
+            group.add(stem);
+
+            // Leaf
+            const leafGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+            leafGeometry.scale(1, 0.3, 0.5);
+            const leafMaterial = new THREE.MeshStandardMaterial({
+                color: 0x228B22,
+                roughness: 0.5
+            });
+            const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+            leaf.position.set(0.08, 0.38, 0);
+            leaf.rotation.z = -0.5;
+            group.add(leaf);
+
+            // Glow
+            const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xFF4444,
+                transparent: true,
+                opacity: 0.2
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            group.add(glow);
+
+            return group;
+        }
+
+        function spawnCollectible() {
+            const apple = createApple();
+
+            const x = (Math.random() - 0.5) * (ROAD_WIDTH - 4);
+            apple.position.set(x, 2, -120);
+            apple.scale.setScalar(1.2);
+
+            apple.userData = {
+                collected: false,
+                floatOffset: Math.random() * Math.PI * 2
+            };
+
+            scene.add(apple);
+            collectibles.push(apple);
+        }
+
+        function updateCollectibles() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const time = Date.now() * 0.001;
+
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const apple = collectibles[i];
+
+                apple.position.z += speed;
+                apple.position.y = 2 + Math.sin(time * 4 + apple.userData.floatOffset) * 0.25;
+                apple.rotation.y += 0.03;
+
+                // Pulse glow
+                if (apple.children[3]) {
+                    apple.children[3].scale.setScalar(1 + Math.sin(time * 6) * 0.15);
+                }
+
+                if (mannequin && !apple.userData.collected) {
+                    const distance = apple.position.distanceTo(mannequin.position);
+                    if (distance < 2) {
+                        collectCollectible(apple, i);
+                        continue;
+                    }
+                }
+
+                if (apple.position.z > 15) {
+                    scene.remove(apple);
+                    collectibles.splice(i, 1);
+                }
+            }
+
+            const now = Date.now();
+            if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
+                if (now - lastCollectibleSpawn > collectibleSpawnInterval) {
+                    spawnCollectible();
+                    lastCollectibleSpawn = now;
+                }
+            }
+        }
+
+        function collectCollectible(apple, index) {
+            apple.userData.collected = true;
+            createCollectionBurst(apple.position);
+            playCollectSound();
+
+            moments++;
+            memoryClarity = Math.min(100, memoryClarity + 10);
+            checkLevelUp();
+            updateUI();
+
+            if (memoryClarity >= 100 && currentState === GameState.PLAYING) {
+                triggerMiracleMile();
+            }
+
+            scene.remove(apple);
+            collectibles.splice(index, 1);
+        }
+
+        function createCollectionBurst(position) {
+            const particleCount = 25;
+            const particles = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                const geometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(0, 0.8, 0.5 + Math.random() * 0.3),
+                    transparent: true,
+                    opacity: 1
+                });
+                const particle = new THREE.Mesh(geometry, material);
+                particle.position.copy(position);
+                particle.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.5,
+                    Math.random() * 0.4 + 0.1,
+                    (Math.random() - 0.5) * 0.5
+                );
+                particle.userData.life = 1.0;
+                scene.add(particle);
+                particles.push(particle);
+            }
+
+            const animateParticles = () => {
+                let allDead = true;
+                particles.forEach(p => {
+                    if (p.userData.life > 0) {
+                        allDead = false;
+                        p.userData.life -= 0.04;
+                        p.position.add(p.userData.velocity);
+                        p.userData.velocity.y -= 0.01;
+                        p.material.opacity = p.userData.life;
+                        p.scale.setScalar(0.5 + p.userData.life * 0.5);
+                    } else if (p.parent) {
+                        scene.remove(p);
+                    }
+                });
+                if (!allDead) requestAnimationFrame(animateParticles);
+            };
+            animateParticles();
+        }
+
+        // ============================================
+        // OBSTACLES
+        // ============================================
+        const obstacles = [];
+        let obstacleSpawnInterval = 3000;
+        let lastObstacleSpawn = 0;
+
+        function createObstacleGeometry() {
+            const group = new THREE.Group();
+
+            const barrierGeometry = new THREE.BoxGeometry(2.5, 1, 0.5);
+            const barrierMaterial = new THREE.MeshStandardMaterial({
+                color: 0xFF5500,
+                roughness: 0.6
+            });
+            const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
+            barrier.position.y = 0.5;
+            group.add(barrier);
+
+            const stripeGeometry = new THREE.BoxGeometry(0.3, 1, 0.52);
+            const stripeMaterial = new THREE.MeshStandardMaterial({ color: 0x1A1A1A });
+
+            for (let i = -3; i <= 3; i += 2) {
+                const stripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
+                stripe.position.set(i * 0.35, 0.5, 0);
+                group.add(stripe);
+            }
+
+            const legGeometry = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x2A2A2A });
+
+            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+            leftLeg.position.set(-1, 0, 0);
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+            rightLeg.position.set(1, 0, 0);
+            group.add(rightLeg);
+
+            return group;
+        }
+
+        function spawnObstacle() {
+            const obstacle = createObstacleGeometry();
+            const positions = [-3.5, 0, 3.5];
+            const x = positions[Math.floor(Math.random() * positions.length)];
+            obstacle.position.set(x, 0, -150);
+            scene.add(obstacle);
+            obstacles.push(obstacle);
+        }
+
+        function updateObstacles() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.position.z += speed;
+
+                if (mannequin && !isInvincible) {
+                    const dx = obstacle.position.x - mannequin.position.x;
+                    const dz = obstacle.position.z - mannequin.position.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+
+                    if (distance < 1.8 && Math.abs(dz) < 1.5) {
+                        handleCollision(obstacle, i);
+                        continue;
+                    }
+                }
+
+                if (obstacle.position.z > 15) {
+                    scene.remove(obstacle);
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            const now = Date.now();
+            if (currentState === GameState.PLAYING) {
+                if (now - lastObstacleSpawn > obstacleSpawnInterval) {
+                    spawnObstacle();
+                    lastObstacleSpawn = now;
+                }
+            }
+        }
+
+        function handleCollision(obstacle, index) {
+            lives--;
+            updateUI();
+            playHitSound();
+
+            speedPass.uniforms.speedBlur.value = 0.8;
+            setTimeout(() => {
+                speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel();
+            }, 200);
+
+            isInvincible = true;
+            setTimeout(() => { isInvincible = false; }, 1500);
+
+            scene.remove(obstacle);
+            obstacles.splice(index, 1);
+
+            if (lives <= 0) gameOver();
+        }
+
+        // ============================================
+        // LEVEL SYSTEM - More difficulty
+        // ============================================
+        function checkLevelUp() {
+            if (currentLevel >= MAX_LEVEL) return;
+
+            if (moments >= momentsForNextLevel) {
+                try {
+                    currentLevel++;
+                    momentsForNextLevel = currentLevel * 12; // Harder progression
+
+                    // Increase speed significantly
+                    roadSpeed = BASE_ROAD_SPEED + (currentLevel - 1) * 0.3;
+
+                    // Faster obstacle spawns
+                    obstacleSpawnInterval = Math.max(1000, 3000 - (currentLevel - 1) * 220);
+
+                    // Faster collectible spawns
+                    collectibleSpawnInterval = Math.max(600, 1500 - (currentLevel - 1) * 100);
+
+                    // Faster soul spawns
+                    soulSpawnInterval = Math.max(2500, 5000 - (currentLevel - 1) * 250);
+
+                    // Update visuals
+                    updateRoadColor();
+                    updateSkyColor();
+                    updateLighting();
+
+                    showLevelUp();
+                    playLevelUpSound();
+
+                    updateUI();
+
+                    console.log(`Level ${currentLevel}: speed=${roadSpeed.toFixed(2)}, obstacles=${obstacleSpawnInterval}ms`);
+                } catch (e) {
+                    console.error('Level up error:', e);
+                }
+            }
+        }
+
+        function updateLighting() {
+            // Darken ambient and hemisphere lights as levels progress
+            const darkenFactor = 1 - (currentLevel - 1) * 0.06; // Gets darker each level
+            ambientLight.intensity = 0.8 * darkenFactor;
+            hemisphereLight.intensity = 0.6 * darkenFactor;
+
+            // Slightly reduce directional light too
+            directionalLight.intensity = 1.2 * (0.9 + darkenFactor * 0.1);
+
+            // Shift fog density slightly
+            scene.fog.density = 0.006 + (currentLevel - 1) * 0.001;
+        }
+
+        function showLevelUp() {
+            const levelUpEl = document.getElementById('level-up-text');
+            levelUpEl.textContent = `LEVEL ${currentLevel}`;
+            levelUpEl.classList.add('visible');
+            setTimeout(() => {
+                levelUpEl.classList.remove('visible');
+            }, 1500);
+        }
+
+        function getSpeedBlurForLevel() {
+            return 0.3 + (currentLevel - 1) * 0.06;
+        }
+
+        // ============================================
+        // MIRACLE MILE MODE
+        // ============================================
+        function triggerMiracleMile() {
+            currentState = GameState.MIRACLE_MILE;
+            miracleMilesCount++;
+            isInvincible = true;
+
+            playBoostSound();
+
+            document.getElementById('miracle-flash').classList.add('active');
+            document.getElementById('miracle-text').classList.add('visible');
+
+            setTimeout(() => {
+                document.getElementById('miracle-flash').classList.remove('active');
+            }, 500);
+
+            setTimeout(() => {
+                document.getElementById('miracle-text').classList.remove('visible');
+            }, 2000);
+
+            bloomPass.strength = 1.2;
+            camera.fov = 95;
+            camera.updateProjectionMatrix();
+
+            miracleMileTimer = 6000;
+        }
+
+        function updateMiracleMile(deltaTime) {
+            if (currentState !== GameState.MIRACLE_MILE) return;
+
+            miracleMileTimer -= deltaTime;
+
+            const pulse = Math.sin(Date.now() * 0.01) * 5;
+            camera.fov = 95 + pulse;
+            camera.updateProjectionMatrix();
+
+            speedPass.uniforms.speedBlur.value = 0.7 + Math.sin(Date.now() * 0.015) * 0.15;
+
+            if (miracleMileTimer <= 0) endMiracleMile();
+        }
+
+        function endMiracleMile() {
+            currentState = GameState.PLAYING;
+            isInvincible = false;
+            memoryClarity = 0;
+            updateUI();
+
+            bloomPass.strength = 0.7;
+            speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel();
+            camera.fov = 75;
+            camera.updateProjectionMatrix();
+        }
+
+        // ============================================
+        // SPEED LINES
+        // ============================================
+        const speedLines = [];
+        const SPEED_LINE_COUNT = 60;
+
+        function createSpeedLines() {
+            const geometry = new THREE.BoxGeometry(0.03, 0.03, 15);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.4
+            });
+
+            for (let i = 0; i < SPEED_LINE_COUNT; i++) {
+                const line = new THREE.Mesh(geometry, material.clone());
+                const angle = Math.random() * Math.PI * 2;
+                const radius = 4 + Math.random() * 20;
+                line.position.set(
+                    Math.cos(angle) * radius,
+                    1 + Math.random() * 10,
+                    -50 - Math.random() * 150
+                );
+                scene.add(line);
+                speedLines.push(line);
+            }
+        }
+
+        function updateSpeedLines() {
+            const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 4 : roadSpeed * 2;
+            const targetOpacity = currentState === GameState.MIRACLE_MILE ? 0.6 : 0.25 + currentLevel * 0.03;
+
+            speedLines.forEach(line => {
+                line.position.z += speed;
+
+                if (line.position.z > 20) {
+                    line.position.z = -200;
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 4 + Math.random() * 20;
+                    line.position.x = Math.cos(angle) * radius;
+                    line.position.y = 1 + Math.random() * 10;
+                }
+
+                line.material.opacity += (targetOpacity - line.material.opacity) * 0.1;
+            });
+        }
+
+        // ============================================
+        // INPUT HANDLING
+        // ============================================
+        let pointerX = 0.5;
+
+        function handlePointerMove(e) {
+            if (currentState !== GameState.PLAYING && currentState !== GameState.MIRACLE_MILE) return;
+            const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX);
+            if (clientX !== undefined) {
+                pointerX = clientX / window.innerWidth;
+            }
+        }
+
+        function updateSteering() {
+            if (currentState !== GameState.PLAYING && currentState !== GameState.MIRACLE_MILE) return;
+            const maxX = ROAD_WIDTH / 2 - 2;
+            mannequinTargetX = (pointerX - 0.5) * 2 * maxX;
+        }
+
+        canvas.addEventListener('mousemove', handlePointerMove);
+        canvas.addEventListener('touchstart', handlePointerMove, { passive: true });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: true });
+
+        // ============================================
+        // UI
+        // ============================================
+        function updateUI() {
+            document.getElementById('moments-count').textContent = moments;
+            document.getElementById('memory-percent').textContent = Math.floor(memoryClarity);
+            document.getElementById('memory-fill').style.width = memoryClarity + '%';
+            document.getElementById('level-num').textContent = currentLevel;
+
+            for (let i = 1; i <= 3; i++) {
+                const lifeEl = document.getElementById('life' + i);
+                if (i > lives) lifeEl.classList.add('lost');
+                else lifeEl.classList.remove('lost');
+            }
+        }
+
+        function showHUD() {
+            document.getElementById('hud').classList.add('visible');
+            document.getElementById('memory-bar-container').classList.add('visible');
+        }
+
+        function hideHUD() {
+            document.getElementById('hud').classList.remove('visible');
+            document.getElementById('memory-bar-container').classList.remove('visible');
+        }
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        function startGame() {
+            currentState = GameState.PLAYING;
+            lives = 3;
+            moments = 0;
+            memoryClarity = 0;
+            miracleMilesCount = 0;
+            currentLevel = 1;
+            momentsForNextLevel = 10;
+            roadSpeed = BASE_ROAD_SPEED;
+            obstacleSpawnInterval = 3000;
+            collectibleSpawnInterval = 1500;
+            soulSpawnInterval = 5000;
+            mannequinTargetX = 0;
+            mannequinCurrentX = 0;
+            isInvincible = false;
+            pointerX = 0.5;
+
+            collectibles.forEach(c => scene.remove(c));
+            collectibles.length = 0;
+            obstacles.forEach(o => scene.remove(o));
+            obstacles.length = 0;
+            souls.forEach(s => scene.remove(s));
+            souls.length = 0;
+
+            if (mannequin) mannequin.position.x = 0;
+
+            updateRoadColor();
+            updateSkyColor();
+            updateLighting();
+
+            bloomPass.strength = 0.7;
+            speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel();
+            camera.fov = 75;
+            camera.updateProjectionMatrix();
+
+            updateUI();
+            showHUD();
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.remove('visible');
+
+            playAudio();
+        }
+
+        function gameOver() {
+            currentState = GameState.GAME_OVER;
+            hideHUD();
+            stopAudio();
+
+            document.getElementById('final-level').textContent = currentLevel;
+            document.getElementById('final-moments').textContent = moments;
+            document.getElementById('final-miracles').textContent = miracleMilesCount;
+            document.getElementById('game-over-screen').classList.add('visible');
+        }
+
+        document.getElementById('start-button').addEventListener('click', () => {
+            initAudio();
+            initSoundEffects();
+            startGame();
+        });
+
+        document.getElementById('restart-button').addEventListener('click', startGame);
+
+        // ============================================
+        // RESIZE
+        // ============================================
+        function onResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+            composer.setSize(width, height);
+        }
+
+        window.addEventListener('resize', onResize);
+
+        // ============================================
+        // INIT
+        // ============================================
+        function init() {
+            initRoad();
+            createMannequin();
+            createClouds();
+            createSpeedLines();
+        }
+
+        // ============================================
+        // ANIMATION LOOP
+        // ============================================
+        let lastTime = 0;
+
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            updateAudioData();
+            speedPass.uniforms.time.value = currentTime * 0.001;
+
+            try {
+                if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
+                    updateSteering();
+                    updateRoad();
+                    updateMannequin(deltaTime);
+                    updateClouds();
+                    updateCollectibles();
+                    updateObstacles();
+                    updateSouls();
+                    updateSpeedLines();
+                    updateMiracleMile(deltaTime);
+
+                    bloomPass.strength = 0.7 + audioData.mids * 0.25;
+
+                    camera.position.x = Math.sin(currentTime * 0.0004) * 0.2;
+                    camera.rotation.z = Math.sin(currentTime * 0.0003) * 0.015;
+                } else {
+                    updateClouds();
+                    updateSpeedLines();
+                }
+            } catch (e) {
+                console.error('Game loop error:', e);
+            }
+
+            composer.render();
+        }
+
+        init();
+        animate(0);
+
+    </script>
+</body>
+</html>
