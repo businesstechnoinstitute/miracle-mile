@@ -1499,23 +1499,33 @@
         // SLOW TRAVELERS (Other people on the highway)
         // ============================================
         const travelers = [];
-        let travelerSpawnInterval = 2500; // Spawn every 2.5 seconds
+        let travelerSpawnInterval = 2000; // Spawn every 2 seconds
         let lastTravelerSpawn = 0;
 
         function createTravelerGeometry() {
             const group = new THREE.Group();
 
-            // Different colored mannequin
-            const colors = [0xAABBCC, 0xCCBBAA, 0xBBAACC, 0xCCAABB, 0xAABBAA];
+            // Bright neon colors so they're easy to see
+            const colors = [0x00FFFF, 0xFF00FF, 0x00FF00, 0xFFFF00, 0xFF6600];
             const bodyColor = colors[Math.floor(Math.random() * colors.length)];
 
             const bodyMaterial = new THREE.MeshStandardMaterial({
                 color: bodyColor,
-                roughness: 0.4,
-                metalness: 0.1,
-                transparent: true,
-                opacity: 0.85
+                roughness: 0.3,
+                metalness: 0.2,
+                emissive: bodyColor,
+                emissiveIntensity: 0.4
             });
+
+            // Add a big glow sphere so they're visible from far
+            const glowGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: bodyColor,
+                transparent: true,
+                opacity: 0.25
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            group.add(glow);
 
             // Simplified mannequin shape
             // Torso
@@ -1626,12 +1636,11 @@
             // Spawn new travelers
             const now = Date.now();
             if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
-                // Spawn more frequently at higher levels
-                const spawnRate = Math.max(1500, travelerSpawnInterval - (currentLevel - 1) * 150);
+                // Spawn more frequently at higher levels (down to 1 second at high levels)
+                const spawnRate = Math.max(1000, travelerSpawnInterval - (currentLevel - 1) * 150);
                 if (now - lastTravelerSpawn > spawnRate) {
                     spawnTraveler();
                     lastTravelerSpawn = now;
-                    console.log('Spawned traveler at level', currentLevel);
                 }
             }
         }
