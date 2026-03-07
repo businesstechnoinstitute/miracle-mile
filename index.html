@@ -411,18 +411,18 @@
         scene.background = new THREE.Color(0x87CEEB);
         scene.fog = new THREE.FogExp2(0xC8E0F0, 0.006);
 
-        // Sky colors per level
+        // Sky colors per level - day/night cycle
         const skyColors = [
-            { bg: 0x87CEEB, fog: 0xC8E0F0 }, // Level 1 - Light blue
-            { bg: 0x7EC8E3, fog: 0xB8D8E8 }, // Level 2
-            { bg: 0x6BB3D9, fog: 0xA0C8DC }, // Level 3
-            { bg: 0x5A9FCC, fog: 0x88B8D0 }, // Level 4
-            { bg: 0x4A8ABF, fog: 0x70A8C4 }, // Level 5
-            { bg: 0x3D75B0, fog: 0x5898B8 }, // Level 6 - Deeper blue
-            { bg: 0x3560A0, fog: 0x4888AC }, // Level 7
-            { bg: 0x2E4A90, fog: 0x3878A0 }, // Level 8
-            { bg: 0x283580, fog: 0x286894 }, // Level 9
-            { bg: 0x1E2570, fog: 0x185888 }  // Level 10 - Deep dusk blue
+            { bg: 0x87CEEB, fog: 0xC8E0F0 }, // Level 1 - Morning blue
+            { bg: 0x4BA3C7, fog: 0x7BBAD8 }, // Level 2 - Day blue
+            { bg: 0xF4A460, fog: 0xE8C090 }, // Level 3 - Sunset orange
+            { bg: 0xCD5C5C, fog: 0xD88888 }, // Level 4 - Dusk red
+            { bg: 0x8B4789, fog: 0xA06090 }, // Level 5 - Twilight purple
+            { bg: 0x191970, fog: 0x2E3B70 }, // Level 6 - Night blue
+            { bg: 0x301050, fog: 0x402060 }, // Level 7 - Deep night purple
+            { bg: 0x4B0082, fog: 0x5B2090 }, // Level 8 - Pre-dawn indigo
+            { bg: 0xFF6B6B, fog: 0xFF9090 }, // Level 9 - Dawn pink/red
+            { bg: 0xFFB347, fog: 0xFFD090 }  // Level 10 - Early morning gold
         ];
 
         const camera = new THREE.PerspectiveCamera(
@@ -682,9 +682,18 @@
         let speedMultiplier = 1.0; // For Miracle Mile boost
         let targetSpeedMultiplier = 1.0;
 
+        // Track colors to match sky cycle
         const trackColors = [
-            0x3A3A4A, 0x353550, 0x303058, 0x2A2A5A, 0x252560,
-            0x202065, 0x1A1A68, 0x15156B, 0x101070, 0x0A0A75
+            0x4A5568, // Level 1 - Morning grey-blue
+            0x3D4F5F, // Level 2 - Day cool grey
+            0x6B4423, // Level 3 - Sunset warm brown
+            0x5C3030, // Level 4 - Dusk dark red
+            0x4A2050, // Level 5 - Twilight purple
+            0x1A1A30, // Level 6 - Night dark blue
+            0x150820, // Level 7 - Deep night
+            0x200830, // Level 8 - Pre-dawn dark purple
+            0x4A2525, // Level 9 - Dawn warm dark
+            0x5A4020  // Level 10 - Early morning gold-brown
         ];
 
         function createRoadSegment(zPosition) {
@@ -731,7 +740,8 @@
         }
 
         function updateRoadColor() {
-            const colorIndex = Math.min(currentLevel - 1, trackColors.length - 1);
+            // Cycle through colors (modulo for looping)
+            const colorIndex = (currentLevel - 1) % trackColors.length;
             const color = new THREE.Color(trackColors[colorIndex]);
 
             roadSegments.forEach(segment => {
@@ -744,7 +754,8 @@
         }
 
         function updateSkyColor() {
-            const colorIndex = Math.min(currentLevel - 1, skyColors.length - 1);
+            // Cycle through colors (modulo for looping)
+            const colorIndex = (currentLevel - 1) % skyColors.length;
             scene.background = new THREE.Color(skyColors[colorIndex].bg);
             scene.fog.color = new THREE.Color(skyColors[colorIndex].fog);
         }
@@ -1682,16 +1693,27 @@
         }
 
         function updateLighting() {
-            // Darken ambient and hemisphere lights as levels progress
-            const darkenFactor = 1 - (currentLevel - 1) * 0.06; // Gets darker each level
-            ambientLight.intensity = 0.8 * darkenFactor;
-            hemisphereLight.intensity = 0.6 * darkenFactor;
+            // Lighting intensity per level to match day/night cycle
+            const lightingLevels = [
+                { ambient: 0.8, hemi: 0.6, dir: 1.2, fog: 0.006 },  // 1 - Morning
+                { ambient: 0.9, hemi: 0.7, dir: 1.4, fog: 0.005 },  // 2 - Day (brightest)
+                { ambient: 0.7, hemi: 0.5, dir: 1.0, fog: 0.007 },  // 3 - Sunset
+                { ambient: 0.5, hemi: 0.4, dir: 0.7, fog: 0.008 },  // 4 - Dusk
+                { ambient: 0.4, hemi: 0.3, dir: 0.5, fog: 0.009 },  // 5 - Twilight
+                { ambient: 0.25, hemi: 0.2, dir: 0.3, fog: 0.012 }, // 6 - Night (darkest)
+                { ambient: 0.2, hemi: 0.15, dir: 0.25, fog: 0.014 },// 7 - Deep night
+                { ambient: 0.3, hemi: 0.25, dir: 0.4, fog: 0.010 }, // 8 - Pre-dawn
+                { ambient: 0.5, hemi: 0.4, dir: 0.7, fog: 0.008 },  // 9 - Dawn
+                { ambient: 0.7, hemi: 0.55, dir: 1.0, fog: 0.006 }  // 10 - Early morning
+            ];
 
-            // Slightly reduce directional light too
-            directionalLight.intensity = 1.2 * (0.9 + darkenFactor * 0.1);
+            const levelIndex = (currentLevel - 1) % lightingLevels.length;
+            const lighting = lightingLevels[levelIndex];
 
-            // Shift fog density slightly
-            scene.fog.density = 0.006 + (currentLevel - 1) * 0.001;
+            ambientLight.intensity = lighting.ambient;
+            hemisphereLight.intensity = lighting.hemi;
+            directionalLight.intensity = lighting.dir;
+            scene.fog.density = lighting.fog;
         }
 
         function showLevelUp() {
