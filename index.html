@@ -659,9 +659,13 @@
         }
 
         function playHitSound() {
-            if (hitSound) {
-                hitSound.currentTime = 0;
-                hitSound.play().catch(e => console.log('Hit sound error:', e));
+            // Create new instance each time for reliability
+            try {
+                const sound = new Audio('assets/hit.mp3');
+                sound.volume = 0.7;
+                sound.play().catch(e => console.log('Hit sound error:', e));
+            } catch (e) {
+                console.log('Hit sound failed:', e);
             }
         }
 
@@ -674,6 +678,7 @@
         const NUM_SEGMENTS = 10;
         const BASE_ROAD_SPEED = 1.0;
         let roadSpeed = BASE_ROAD_SPEED;
+        let targetRoadSpeed = BASE_ROAD_SPEED; // For smooth transitions
 
         const trackColors = [
             0x3A3A4A, 0x353550, 0x303058, 0x2A2A5A, 0x252560,
@@ -749,6 +754,9 @@
         }
 
         function updateRoad() {
+            // Smooth speed transition
+            roadSpeed += (targetRoadSpeed - roadSpeed) * 0.02;
+
             const speed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
 
             roadSegments.forEach(segment => {
@@ -1461,6 +1469,165 @@
         }
 
         // ============================================
+        // SLOW TRAVELERS (Other people on the highway)
+        // ============================================
+        const travelers = [];
+        let travelerSpawnInterval = 4000;
+        let lastTravelerSpawn = 0;
+
+        function createTravelerGeometry() {
+            const group = new THREE.Group();
+
+            // Different colored mannequin
+            const colors = [0xAABBCC, 0xCCBBAA, 0xBBAACC, 0xCCAABB, 0xAABBAA];
+            const bodyColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: bodyColor,
+                roughness: 0.4,
+                metalness: 0.1,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            // Simplified mannequin shape
+            // Torso
+            const torsoGeometry = new THREE.CapsuleGeometry(0.12, 0.4, 16, 32);
+            const torso = new THREE.Mesh(torsoGeometry, bodyMaterial);
+            torso.position.set(0, 0, -0.3);
+            torso.rotation.x = Math.PI / 2;
+            group.add(torso);
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const head = new THREE.Mesh(headGeometry, bodyMaterial);
+            head.position.set(0, 0.05, -0.65);
+            group.add(head);
+
+            // Arms stretched forward
+            const armGeometry = new THREE.CapsuleGeometry(0.035, 0.35, 8, 16);
+            const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            leftArm.position.set(-0.12, 0.05, -0.6);
+            leftArm.rotation.x = Math.PI / 2;
+            group.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeometry, bodyMaterial);
+            rightArm.position.set(0.12, 0.05, -0.6);
+            rightArm.rotation.x = Math.PI / 2;
+            group.add(rightArm);
+
+            // Legs
+            const legGeometry = new THREE.CapsuleGeometry(0.04, 0.4, 8, 16);
+            const leftLeg = new THREE.Mesh(legGeometry, bodyMaterial);
+            leftLeg.position.set(-0.06, -0.03, 0.25);
+            leftLeg.rotation.x = Math.PI / 2;
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeometry, bodyMaterial);
+            rightLeg.position.set(0.06, -0.03, 0.25);
+            rightLeg.rotation.x = Math.PI / 2;
+            group.add(rightLeg);
+
+            // Trail effect
+            for (let i = 0; i < 4; i++) {
+                const trailGeometry = new THREE.SphereGeometry(0.08 - i * 0.015, 8, 8);
+                const trailMaterial = new THREE.MeshBasicMaterial({
+                    color: bodyColor,
+                    transparent: true,
+                    opacity: 0.3 - i * 0.06
+                });
+                const trail = new THREE.Mesh(trailGeometry, trailMaterial);
+                trail.position.set(0, 0, 0.4 + i * 0.2);
+                group.add(trail);
+            }
+
+            return group;
+        }
+
+        function spawnTraveler() {
+            const traveler = createTravelerGeometry();
+            const lanes = [-3.5, 0, 3.5];
+            const x = lanes[Math.floor(Math.random() * lanes.length)];
+            traveler.position.set(x, 1.8, -180);
+            traveler.scale.setScalar(1.4);
+
+            traveler.userData = {
+                speed: 0.3 + Math.random() * 0.3, // Slower than player
+                wobbleOffset: Math.random() * Math.PI * 2,
+                lane: x
+            };
+
+            scene.add(traveler);
+            travelers.push(traveler);
+        }
+
+        function updateTravelers() {
+            const playerSpeed = currentState === GameState.MIRACLE_MILE ? roadSpeed * 2.5 : roadSpeed;
+            const time = Date.now() * 0.001;
+
+            for (let i = travelers.length - 1; i >= 0; i--) {
+                const traveler = travelers[i];
+
+                // They move forward but slower than the road, so they come towards player
+                const relativeSpeed = playerSpeed - traveler.userData.speed;
+                traveler.position.z += relativeSpeed;
+
+                // Wobble animation
+                traveler.position.y = 1.8 + Math.sin(time * 2 + traveler.userData.wobbleOffset) * 0.1;
+                traveler.rotation.x = -0.15 + Math.sin(time * 3 + traveler.userData.wobbleOffset) * 0.03;
+
+                // Collision detection
+                if (mannequin && !isInvincible) {
+                    const dx = traveler.position.x - mannequin.position.x;
+                    const dz = traveler.position.z - mannequin.position.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+
+                    if (distance < 1.5 && Math.abs(dz) < 1.2) {
+                        handleTravelerCollision(traveler, i);
+                        continue;
+                    }
+                }
+
+                // Remove if passed
+                if (traveler.position.z > 15) {
+                    scene.remove(traveler);
+                    travelers.splice(i, 1);
+                }
+            }
+
+            // Spawn new travelers
+            const now = Date.now();
+            if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
+                // Spawn more frequently at higher levels
+                const spawnRate = Math.max(2000, travelerSpawnInterval - (currentLevel - 1) * 200);
+                if (now - lastTravelerSpawn > spawnRate) {
+                    spawnTraveler();
+                    lastTravelerSpawn = now;
+                }
+            }
+        }
+
+        function handleTravelerCollision(traveler, index) {
+            lives--;
+            updateUI();
+            playHitSound();
+
+            // Visual feedback
+            speedPass.uniforms.speedBlur.value = 0.8;
+            setTimeout(() => {
+                speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel();
+            }, 200);
+
+            isInvincible = true;
+            setTimeout(() => { isInvincible = false; }, 1500);
+
+            scene.remove(traveler);
+            travelers.splice(index, 1);
+
+            if (lives <= 0) gameOver();
+        }
+
+        // ============================================
         // LEVEL SYSTEM - More difficulty
         // ============================================
         function checkLevelUp() {
@@ -1471,8 +1638,8 @@
                     currentLevel++;
                     momentsForNextLevel = currentLevel * 12; // Harder progression
 
-                    // Increase speed significantly
-                    roadSpeed = BASE_ROAD_SPEED + (currentLevel - 1) * 0.3;
+                    // Increase speed with smooth transition
+                    targetRoadSpeed = BASE_ROAD_SPEED + (currentLevel - 1) * 0.3;
 
                     // Faster obstacle spawns
                     obstacleSpawnInterval = Math.max(1000, 3000 - (currentLevel - 1) * 220);
@@ -1488,15 +1655,36 @@
                     updateSkyColor();
                     updateLighting();
 
+                    // Spawn bonus apples on level up!
+                    spawnBonusApples();
+
                     showLevelUp();
                     playLevelUpSound();
 
                     updateUI();
 
-                    console.log(`Level ${currentLevel}: speed=${roadSpeed.toFixed(2)}, obstacles=${obstacleSpawnInterval}ms`);
+                    console.log(`Level ${currentLevel}: speed=${targetRoadSpeed.toFixed(2)}, obstacles=${obstacleSpawnInterval}ms`);
                 } catch (e) {
                     console.error('Level up error:', e);
                 }
+            }
+        }
+
+        function spawnBonusApples() {
+            // Spawn a wave of bonus apples across the road
+            const appleCount = 8 + currentLevel * 2; // More apples at higher levels
+            for (let i = 0; i < appleCount; i++) {
+                const apple = createApple();
+                const x = (Math.random() - 0.5) * (ROAD_WIDTH - 3);
+                const z = -80 - (i * 12); // Spread them out ahead
+                apple.position.set(x, 2, z);
+                apple.scale.setScalar(1.2);
+                apple.userData = {
+                    collected: false,
+                    floatOffset: Math.random() * Math.PI * 2
+                };
+                scene.add(apple);
+                collectibles.push(apple);
             }
         }
 
@@ -1688,6 +1876,7 @@
             currentLevel = 1;
             momentsForNextLevel = 10;
             roadSpeed = BASE_ROAD_SPEED;
+            targetRoadSpeed = BASE_ROAD_SPEED;
             obstacleSpawnInterval = 3000;
             collectibleSpawnInterval = 1500;
             soulSpawnInterval = 5000;
@@ -1702,6 +1891,8 @@
             obstacles.length = 0;
             souls.forEach(s => scene.remove(s));
             souls.length = 0;
+            travelers.forEach(t => scene.remove(t));
+            travelers.length = 0;
 
             if (mannequin) mannequin.position.x = 0;
 
@@ -1788,6 +1979,7 @@
                     updateClouds();
                     updateCollectibles();
                     updateObstacles();
+                    updateTravelers();
                     updateSouls();
                     updateSpeedLines();
                     updateMiracleMile(deltaTime);
