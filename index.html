@@ -31,6 +31,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: 0;
         }
 
         .ui-overlay {
@@ -740,17 +741,20 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-        import { createClient } from '@supabase/supabase-js';
 
         // ============================================
-        // SUPABASE CONFIG — replace these two values
+        // SUPABASE CONFIG (loaded dynamically so it can't crash the game)
         // ============================================
         const SUPABASE_URL  = 'https://swcabiudhsvgbbjkymvj.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3Y2FiaXVkaHN2Z2Jiamt5bXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MTQ2MjQsImV4cCI6MjA4OTI5MDYyNH0.q-lDuj0ZgB689zFdAAr9ZebYO0f_2td9jqItkPZnMuA';
 
-        const supabase = (SUPABASE_URL !== 'YOUR_SUPABASE_URL')
-            ? createClient(SUPABASE_URL, SUPABASE_ANON)
-            : null;
+        let supabase = null;
+        try {
+            const { createClient } = await import('@supabase/supabase-js');
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+        } catch (e) {
+            console.warn('Supabase failed to load — leaderboard disabled:', e);
+        }
 
         async function dbSubmitScore(name, email) {
             if (!supabase) return { error: 'not_configured' };
@@ -2596,11 +2600,12 @@
         function initEmailGate() {
             const storedEmail = localStorage.getItem('mm_player_email');
             const storedName = localStorage.getItem('mm_player_name');
+
             if (storedEmail && storedName) {
-                // Returning player — skip the form, just show a welcome back + play button
+                // Returning player — skip the form, show welcome back
                 const gate = document.getElementById('email-gate');
                 gate.innerHTML = `
-                    <p style="color:#4A6B8A;font-size:15px;margin-bottom:4px;">Welcome back, <strong>${storedName.replace(/</g,'&lt;')}</strong></p>
+                    <p style="color:#4A6B8A;font-size:15px;margin-bottom:4px;">Welcome back, <strong>${escapeHtml(storedName)}</strong></p>
                     <button class="start-button" id="start-button">Begin Journey</button>
                     <button class="skip-score-btn" id="gate-change-btn" style="margin-top:4px;">Not you? Change details</button>
                 `;
@@ -2616,34 +2621,35 @@
                     location.reload();
                 });
             } else {
+                // New player — wire up the existing form + button
                 if (storedEmail) document.getElementById('gate-email').value = storedEmail;
                 if (storedName) document.getElementById('gate-name').value = storedName;
+
+                document.getElementById('start-button').addEventListener('click', (e) => {
+                    e.target.blur();
+                    const name = document.getElementById('gate-name').value.trim();
+                    const email = document.getElementById('gate-email').value.trim();
+
+                    if (!name) {
+                        document.getElementById('gate-message').textContent = 'Please enter your name.';
+                        return;
+                    }
+                    if (!email || !email.includes('@')) {
+                        document.getElementById('gate-message').textContent = 'Please enter a valid email.';
+                        return;
+                    }
+                    localStorage.setItem('mm_player_name', name);
+                    localStorage.setItem('mm_player_email', email);
+                    if (supabase) {
+                        supabase.from('email_signups').insert({ email, name }).catch(() => {});
+                    }
+
+                    initAudio();
+                    initSoundEffects();
+                    startGame();
+                });
             }
         }
-
-        document.getElementById('start-button').addEventListener('click', (e) => {
-            e.target.blur();
-            const name = document.getElementById('gate-name').value.trim();
-            const email = document.getElementById('gate-email').value.trim();
-
-            if (!name) {
-                document.getElementById('gate-message').textContent = 'Please enter your name.';
-                return;
-            }
-            if (!email || !email.includes('@')) {
-                document.getElementById('gate-message').textContent = 'Please enter a valid email.';
-                return;
-            }
-            localStorage.setItem('mm_player_name', name);
-            localStorage.setItem('mm_player_email', email);
-            if (supabase) {
-                supabase.from('email_signups').insert({ email, name }).catch(() => {});
-            }
-
-            initAudio();
-            initSoundEffects();
-            startGame();
-        });
 
         document.getElementById('restart-button').addEventListener('click', (e) => {
             e.target.blur();
