@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Miracle Mile</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='32' cy='36' rx='22' ry='20' fill='%234CA64C'/><ellipse cx='28' cy='30' rx='6' ry='4' fill='%2366CC66' opacity='0.5'/><rect x='30' y='10' width='4' height='12' rx='2' fill='%234A3728' transform='rotate(10 32 16)'/><ellipse cx='40' cy='14' rx='8' ry='4' fill='%23228B22' transform='rotate(-30 40 14)'/></svg>">
     <style>
         * {
             margin: 0;
@@ -155,6 +156,7 @@
             transition: opacity 0.8s ease, transform 0.8s ease;
             overflow-y: auto;
             padding: 30px 20px;
+            touch-action: auto;
         }
 
         .start-screen.hidden {
@@ -240,6 +242,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.8s ease;
+            touch-action: auto;
         }
 
         .game-over-screen.visible {
@@ -289,6 +292,7 @@
             width: 90%;
             max-width: 300px;
             margin-bottom: 20px;
+            touch-action: auto;
         }
 
         .stats { text-align: center; margin-bottom: 40px; }
@@ -374,6 +378,7 @@
             margin-top: 20px;
             width: 100%;
             max-width: 300px;
+            touch-action: auto;
         }
 
         .form-title {
@@ -736,8 +741,8 @@
         // ============================================
         // SUPABASE CONFIG — replace these two values
         // ============================================
-        const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+        const SUPABASE_URL  = 'https://swcabiudhsvgbbjkymvj.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3Y2FiaXVkaHN2Z2Jiamt5bXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MTQ2MjQsImV4cCI6MjA4OTI5MDYyNH0.q-lDuj0ZgB689zFdAAr9ZebYO0f_2td9jqItkPZnMuA';
 
         const supabase = (SUPABASE_URL !== 'YOUR_SUPABASE_URL')
             ? createClient(SUPABASE_URL, SUPABASE_ANON)
