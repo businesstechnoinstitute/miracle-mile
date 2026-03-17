@@ -149,9 +149,12 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 12px;
             background: linear-gradient(180deg, #B8D4E8 0%, #E8F4FC 50%, #FFFFFF 100%);
             z-index: 200;
             transition: opacity 0.8s ease, transform 0.8s ease;
+            overflow-y: auto;
+            padding: 30px 20px;
         }
 
         .start-screen.hidden {
@@ -173,7 +176,7 @@
             font-size: 16px;
             color: #7A9BB8;
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 10px;
             font-style: italic;
         }
 
@@ -205,8 +208,11 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
+            overflow-y: auto;
+            padding: 40px 20px 40px;
+            box-sizing: border-box;
             background: linear-gradient(180deg, #D4B8E8 0%, #F4E8FC 50%, #FFFFFF 100%);
             z-index: 200;
             opacity: 0;
@@ -219,11 +225,48 @@
             pointer-events: auto;
         }
 
+        .game-over-screen.victory {
+            background: linear-gradient(180deg, #1a0a2e 0%, #3d1a6e 40%, #FFD700 100%);
+        }
+
         .game-over-title {
             font-size: 36px;
             color: #6A4B8A;
             text-align: center;
             margin-bottom: 30px;
+        }
+
+        .game-over-screen.victory .game-over-title {
+            font-size: 38px;
+            color: #FFD700;
+            text-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 80px rgba(255,180,0,0.4);
+            letter-spacing: 3px;
+        }
+
+        .victory-message {
+            font-size: 15px;
+            color: #E0D0FF;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 24px;
+            max-width: 300px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .game-over-screen.victory .victory-message { display: block; }
+        .game-over-screen.victory .stat-item { color: #C0A0E8; }
+        .game-over-screen.victory .stat-value { color: #FFD700; }
+
+        /* Email input on start screen */
+        .email-gate {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 90%;
+            max-width: 300px;
+            margin-bottom: 20px;
         }
 
         .stats { text-align: center; margin-bottom: 40px; }
@@ -299,6 +342,263 @@
             margin-top: 20px;
             text-align: center;
         }
+
+        /* ---- Score form (game over screen) ---- */
+        .score-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .form-title {
+            font-size: 14px;
+            color: #7A6B9B;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .score-input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1.5px solid rgba(155,107,193,0.3);
+            border-radius: 20px;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+            background: rgba(255,255,255,0.8);
+            color: #4A3B6A;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+            pointer-events: auto;
+            touch-action: auto;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .score-input:focus { border-color: #9B6BC1; }
+
+        .score-input::placeholder { color: #B0A0C8; }
+
+        .submit-score-btn {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #9B6BC1, #7A4BA1);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(155,107,193,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .submit-score-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(155,107,193,0.5); }
+        .submit-score-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+        .skip-score-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            color: #9B8BBB;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 4px;
+        }
+
+        .form-message {
+            font-size: 13px;
+            color: #7A6B9B;
+            text-align: center;
+            min-height: 18px;
+        }
+
+        /* ---- Leaderboard overlay ---- */
+        .leaderboard-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .leaderboard-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .leaderboard-title {
+            font-size: 32px;
+            color: #D4A8FF;
+            letter-spacing: 4px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 30px rgba(180,100,255,0.6);
+        }
+
+        .leaderboard-subtitle {
+            font-size: 13px;
+            color: #8870AA;
+            margin-bottom: 24px;
+            font-style: italic;
+        }
+
+        .leaderboard-list {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+
+        .lb-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 10px 16px;
+            border: 1px solid rgba(180,100,255,0.15);
+        }
+
+        .lb-item.lb-top {
+            background: rgba(180,100,255,0.15);
+            border-color: rgba(180,100,255,0.4);
+        }
+
+        .lb-rank {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8870AA;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .lb-item.lb-top .lb-rank { color: #FFD700; }
+
+        .lb-name {
+            font-size: 15px;
+            color: #E0D0FF;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lb-score {
+            font-size: 15px;
+            color: #D4A8FF;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .lb-level {
+            font-size: 12px;
+            color: #8870AA;
+            flex-shrink: 0;
+        }
+
+        .lb-empty {
+            text-align: center;
+            color: #8870AA;
+            font-style: italic;
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        .lb-loading {
+            text-align: center;
+            color: #8870AA;
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        .lb-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .lb-close-btn {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #9B6BC1, #7A4BA1);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(155,107,193,0.4);
+            transition: transform 0.2s;
+        }
+
+        .lb-close-btn:hover { transform: translateY(-1px); }
+
+        .leaderboard-btn {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+            background: rgba(155,107,193,0.2);
+            color: #C0A0E8;
+            border: 1.5px solid rgba(155,107,193,0.4);
+            border-radius: 24px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 0.2s;
+            margin-top: 12px;
+        }
+
+        .leaderboard-btn:hover { background: rgba(155,107,193,0.35); }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 8px;
+            max-width: 320px;
+            width: 90%;
+            backdrop-filter: blur(8px);
+        }
+
+        .inst-item {
+            font-size: 13px;
+            color: #4A6B8A;
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.3;
+        }
+
+        .inst-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .inst-preview {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -333,12 +633,27 @@
     <div class="start-screen" id="start-screen">
         <h1 class="title">MIRACLE MILE</h1>
         <p class="subtitle">A journey through memory</p>
-        <button class="start-button" id="start-button">Begin Journey</button>
+
+        <div class="instructions">
+            <div class="inst-item"><canvas class="inst-preview" id="preview-apple"></canvas> Collect apples — score points &amp; fill memory</div>
+            <div class="inst-item"><canvas class="inst-preview" id="preview-soul"></canvas> Collect blue souls — gain an extra life</div>
+            <div class="inst-item"><canvas class="inst-preview" id="preview-traveler"></canvas> Touch travelers — get a speed boost</div>
+            <div class="inst-item"><canvas class="inst-preview" id="preview-clock"></canvas> Avoid alarm clocks — they slow you down &amp; cost a life</div>
+        </div>
+
+        <div class="email-gate" id="email-gate">
+            <input type="text" id="gate-name" class="score-input" placeholder="Your dreamer name" maxlength="30" autocomplete="name">
+            <input type="email" id="gate-email" class="score-input" placeholder="Your email" autocomplete="email">
+            <button class="start-button" id="start-button">Begin Journey</button>
+            <p class="form-message" id="gate-message"></p>
+        </div>
+        <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
         <p class="audio-note">Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
-        <h1 class="game-over-title">Journey Ended</h1>
+        <h1 class="game-over-title" id="game-over-title">Journey Ended</h1>
+        <p class="victory-message" id="victory-message">You walked every mile of the miracle.<br>The road remembers you.</p>
         <div class="stats">
             <div class="stat-item">Level Reached</div>
             <div class="stat-value" id="final-level">1</div>
@@ -347,7 +662,28 @@
             <div class="stat-item" style="margin-top: 15px;">Miracles Achieved</div>
             <div class="stat-value" id="final-miracles">0</div>
         </div>
-        <button class="restart-button" id="restart-button">Revisit Memories</button>
+
+        <div class="score-form" id="score-form">
+            <p class="form-title">Save your score to the leaderboard</p>
+            <input type="text" id="player-name" class="score-input" placeholder="Your name" maxlength="30" autocomplete="off">
+            <input type="email" id="player-email" class="score-input" placeholder="Email (optional)" autocomplete="email">
+            <button class="submit-score-btn" id="submit-score-btn">Save Score</button>
+            <p class="form-message" id="form-message"></p>
+            <button class="skip-score-btn" id="skip-score-btn">Skip &amp; view leaderboard</button>
+        </div>
+
+        <button class="restart-button" id="restart-button" style="margin-top: 20px;">Revisit Memories</button>
+    </div>
+
+    <div class="leaderboard-overlay" id="leaderboard-overlay">
+        <h2 class="leaderboard-title">LEADERBOARD</h2>
+        <p class="leaderboard-subtitle">Top journeys on the Miracle Mile</p>
+        <div class="leaderboard-list" id="leaderboard-list">
+            <p class="lb-loading">Loading scores...</p>
+        </div>
+        <div class="lb-actions">
+            <button class="lb-close-btn" id="lb-close-btn">Close</button>
+        </div>
     </div>
 
     <div class="miracle-flash" id="miracle-flash"></div>
@@ -358,7 +694,8 @@
     {
         "imports": {
             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+            "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
         }
     }
     </script>
@@ -369,6 +706,67 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+        import { createClient } from '@supabase/supabase-js';
+
+        // ============================================
+        // SUPABASE CONFIG — replace these two values
+        // ============================================
+        const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+
+        const supabase = (SUPABASE_URL !== 'YOUR_SUPABASE_URL')
+            ? createClient(SUPABASE_URL, SUPABASE_ANON)
+            : null;
+
+        async function dbSubmitScore(name, email) {
+            if (!supabase) return { error: 'not_configured' };
+            return supabase.from('leaderboard').insert({
+                name: name.trim(),
+                email: email.trim() || null,
+                score: moments,
+                level: currentLevel,
+                miracles: miracleMilesCount
+            });
+        }
+
+        async function dbFetchLeaderboard() {
+            if (!supabase) return [];
+            const { data, error } = await supabase
+                .from('leaderboard')
+                .select('name, score, level, miracles')
+                .order('score', { ascending: false })
+                .limit(10);
+            return error ? [] : (data || []);
+        }
+
+        function renderLeaderboard(entries) {
+            const list = document.getElementById('leaderboard-list');
+            if (!supabase) {
+                list.innerHTML = '<p class="lb-empty">Leaderboard not configured yet.<br>Add your Supabase keys to enable it.</p>';
+            } else if (entries.length === 0) {
+                list.innerHTML = '<p class="lb-empty">No scores yet — be the first!</p>';
+            } else {
+                list.innerHTML = entries.map((e, i) => `
+                    <div class="lb-item ${i === 0 ? 'lb-top' : ''}">
+                        <span class="lb-rank">${i === 0 ? '🏆' : i + 1}</span>
+                        <span class="lb-name">${escapeHtml(e.name)}</span>
+                        <span class="lb-score">${e.score} pts</span>
+                        <span class="lb-level">Lv.${e.level}</span>
+                    </div>`).join('');
+            }
+            document.getElementById('leaderboard-overlay').classList.add('visible');
+        }
+
+        async function openLeaderboard() {
+            document.getElementById('leaderboard-list').innerHTML = '<p class="lb-loading">Loading scores...</p>';
+            document.getElementById('leaderboard-overlay').classList.add('visible');
+            const entries = await dbFetchLeaderboard();
+            renderLeaderboard(entries);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
 
         // ============================================
         // GAME STATE
@@ -377,7 +775,8 @@
             START: 'start',
             PLAYING: 'playing',
             MIRACLE_MILE: 'miracle_mile',
-            GAME_OVER: 'game_over'
+            GAME_OVER: 'game_over',
+            COMPLETE: 'complete'
         };
 
         let currentState = GameState.START;
@@ -518,7 +917,7 @@
         let musicPlaying = false;
 
         function initAudio() {
-            // Single audio context for everything
+            if (audioContext) return; // Already initialised — prevent duplicate tracks
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 512;
@@ -669,6 +1068,42 @@
             }
         }
 
+        function playAlarmSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const freqs = [880, 1100, 880, 1100, 880];
+                freqs.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'square';
+                    osc.frequency.value = freq;
+                    const t = ctx.currentTime + i * 0.12;
+                    gain.gain.setValueAtTime(0.25, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+                    osc.start(t);
+                    osc.stop(t + 0.11);
+                });
+            } catch(e) {}
+        }
+
+        function applyTravelerBoost() {
+            if (currentState === GameState.MIRACLE_MILE) return;
+            targetSpeedMultiplier = 1.5;
+            setTimeout(() => {
+                if (currentState !== GameState.MIRACLE_MILE) targetSpeedMultiplier = 1.0;
+            }, 2000);
+        }
+
+        function applyAlarmSlow() {
+            if (currentState === GameState.MIRACLE_MILE) return;
+            targetSpeedMultiplier = 0.35;
+            setTimeout(() => {
+                if (currentState !== GameState.MIRACLE_MILE) targetSpeedMultiplier = 1.0;
+            }, 3000);
+        }
+
         // ============================================
         // ROAD SYSTEM
         // ============================================
@@ -753,11 +1188,43 @@
             });
         }
 
+        // Star opacity per level (0=day, 1=full night)
+        const starOpacities = [0, 0, 0, 0.15, 0.55, 0.9, 1.0, 0.85, 0.25, 0];
+        let starField = null;
+        let targetStarOpacity = 0;
+
+        function createStarField() {
+            const starCount = 900;
+            const positions = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 350 + Math.random() * 80;
+                positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = Math.abs(r * Math.cos(phi)) + 30; // above horizon
+                positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({
+                color: 0xFFFFFF,
+                size: 1.8,
+                transparent: true,
+                opacity: 0,
+                sizeAttenuation: false,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            starField = new THREE.Points(geo, mat);
+            scene.add(starField);
+        }
+
         function updateSkyColor() {
             // Cycle through colors (modulo for looping)
             const colorIndex = (currentLevel - 1) % skyColors.length;
             scene.background = new THREE.Color(skyColors[colorIndex].bg);
             scene.fog.color = new THREE.Color(skyColors[colorIndex].fog);
+            targetStarOpacity = starOpacities[colorIndex] || 0;
         }
 
         function initRoad() {
@@ -914,13 +1381,15 @@
             scene.add(mannequinGroup);
             mannequin = mannequinGroup;
 
-            // Trail
+            // Smoke trail
             for (let i = 0; i < TRAIL_LENGTH; i++) {
-                const trailGeometry = new THREE.SphereGeometry(0.12 - i * 0.004, 16, 16);
+                const size = 0.15 + i * 0.02;
+                const trailGeometry = new THREE.SphereGeometry(size, 12, 12);
+                trailGeometry.scale(1, 0.6, 1.2);
                 const trailMaterial = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color().setHSL(0.55 + i * 0.02, 0.3, 0.9),
+                    color: new THREE.Color().setHSL(0.0, 0.0, 0.95),
                     transparent: true,
-                    opacity: 0.35 * (1 - i / TRAIL_LENGTH)
+                    opacity: 0.3 * (1 - i / TRAIL_LENGTH)
                 });
                 const particle = new THREE.Mesh(trailGeometry, trailMaterial);
                 particle.position.copy(mannequinGroup.position);
@@ -953,13 +1422,20 @@
                 }
             });
 
+            // Smoke trail — each particle chases the one ahead, spreading behind
             for (let i = mannequinTrail.length - 1; i > 0; i--) {
-                mannequinTrail[i].position.lerp(mannequinTrail[i - 1].position, 0.2);
+                mannequinTrail[i].position.lerp(mannequinTrail[i - 1].position, 0.12);
+                // Drift upward and outward like dissipating smoke
+                mannequinTrail[i].position.y += 0.008;
+                mannequinTrail[i].position.x += Math.sin(time * 2 + i * 0.5) * 0.003;
+                // Scale up as they age
+                const s = 1 + i * 0.04;
+                mannequinTrail[i].scale.setScalar(s);
             }
             mannequinTrail[0].position.set(
                 mannequin.position.x,
-                mannequin.position.y - 0.2,
-                mannequin.position.z + 1.5
+                mannequin.position.y - 0.3,
+                mannequin.position.z + 2.0
             );
         }
 
@@ -1083,6 +1559,9 @@
 
             moments += 2;
             memoryClarity = Math.min(100, memoryClarity + 15);
+            if (lives < 3) {
+                lives++;
+            }
             checkLevelUp();
             updateUI();
 
@@ -1229,10 +1708,10 @@
             const appleGeometry = new THREE.SphereGeometry(0.35, 32, 32);
             appleGeometry.scale(1, 0.9, 1);
             const appleMaterial = new THREE.MeshStandardMaterial({
-                color: 0xCC2222,
+                color: 0x4CA64C,
                 roughness: 0.3,
                 metalness: 0.1,
-                emissive: 0x660000,
+                emissive: 0x1A5C1A,
                 emissiveIntensity: 0.2
             });
             const apple = new THREE.Mesh(appleGeometry, appleMaterial);
@@ -1264,7 +1743,7 @@
             // Glow
             const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
             const glowMaterial = new THREE.MeshBasicMaterial({
-                color: 0xFF4444,
+                color: 0x66DD66,
                 transparent: true,
                 opacity: 0.2
             });
@@ -1401,34 +1880,68 @@
         function createObstacleGeometry() {
             const group = new THREE.Group();
 
-            const barrierGeometry = new THREE.BoxGeometry(2.5, 1, 0.5);
-            const barrierMaterial = new THREE.MeshStandardMaterial({
-                color: 0xFF5500,
-                roughness: 0.6
+            // Clock body
+            const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.55, 32);
+            const bodyMat = new THREE.MeshStandardMaterial({
+                color: 0xE53935, roughness: 0.4, metalness: 0.3,
+                emissive: 0xE53935, emissiveIntensity: 0.15
             });
-            const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
-            barrier.position.y = 0.5;
-            group.add(barrier);
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.rotation.x = Math.PI / 2;
+            body.position.y = 0.85;
+            group.add(body);
 
-            const stripeGeometry = new THREE.BoxGeometry(0.3, 1, 0.52);
-            const stripeMaterial = new THREE.MeshStandardMaterial({ color: 0x1A1A1A });
+            // Clock face
+            const faceGeo = new THREE.CircleGeometry(0.43, 32);
+            const faceMat = new THREE.MeshStandardMaterial({ color: 0xFFFDE7, roughness: 0.9 });
+            const face = new THREE.Mesh(faceGeo, faceMat);
+            face.position.set(0, 0.85, 0.28);
+            group.add(face);
 
-            for (let i = -3; i <= 3; i += 2) {
-                const stripe = new THREE.Mesh(stripeGeometry, stripeMaterial);
-                stripe.position.set(i * 0.35, 0.5, 0);
-                group.add(stripe);
-            }
+            // Hour hand
+            const handMat = new THREE.MeshStandardMaterial({ color: 0x1A1A1A });
+            const hourGeo = new THREE.BoxGeometry(0.05, 0.22, 0.02);
+            const hourHand = new THREE.Mesh(hourGeo, handMat);
+            hourHand.position.set(-0.04, 0.96, 0.29);
+            hourHand.rotation.z = 0.6;
+            group.add(hourHand);
 
-            const legGeometry = new THREE.BoxGeometry(0.15, 0.6, 0.15);
-            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x2A2A2A });
+            const minGeo = new THREE.BoxGeometry(0.04, 0.30, 0.02);
+            const minHand = new THREE.Mesh(minGeo, handMat);
+            minHand.position.set(0.05, 0.98, 0.29);
+            minHand.rotation.z = -0.3;
+            group.add(minHand);
 
-            const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-            leftLeg.position.set(-1, 0, 0);
-            group.add(leftLeg);
+            // Bells
+            const bellGeo = new THREE.SphereGeometry(0.16, 16, 16);
+            const bellMat = new THREE.MeshStandardMaterial({
+                color: 0xFFD600, roughness: 0.3, metalness: 0.6,
+                emissive: 0xFFD600, emissiveIntensity: 0.1
+            });
+            const bellL = new THREE.Mesh(bellGeo, bellMat);
+            bellL.position.set(-0.35, 1.5, 0);
+            group.add(bellL);
 
-            const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-            rightLeg.position.set(1, 0, 0);
-            group.add(rightLeg);
+            const bellR = new THREE.Mesh(bellGeo.clone(), bellMat);
+            bellR.position.set(0.35, 1.5, 0);
+            group.add(bellR);
+
+            // Bell bar
+            const barGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.7, 8);
+            const barMat = new THREE.MeshStandardMaterial({ color: 0xFFD600, metalness: 0.6 });
+            const bar = new THREE.Mesh(barGeo, barMat);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 1.5, 0);
+            group.add(bar);
+
+            // Feet
+            const footGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.18, 8);
+            const footMat = new THREE.MeshStandardMaterial({ color: 0xBDBDBD, metalness: 0.4 });
+            [-0.22, 0.22].forEach(x => {
+                const foot = new THREE.Mesh(footGeo, footMat);
+                foot.position.set(x, 0.09, 0);
+                group.add(foot);
+            });
 
             return group;
         }
@@ -1448,6 +1961,10 @@
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obstacle = obstacles[i];
                 obstacle.position.z += speed;
+
+                // Alarm clock ringing wobble
+                obstacle.userData.wobbleTime = (obstacle.userData.wobbleTime || 0) + 0.15;
+                obstacle.rotation.z = Math.sin(obstacle.userData.wobbleTime * 8) * 0.06;
 
                 // Collision - tighter hitbox for fairness
                 if (mannequin && !isInvincible) {
@@ -1479,7 +1996,8 @@
         function handleCollision(obstacle, index) {
             lives--;
             updateUI();
-            playHitSound();
+            playAlarmSound();
+            applyAlarmSlow();
 
             speedPass.uniforms.speedBlur.value = 0.8;
             setTimeout(() => {
@@ -1505,9 +2023,7 @@
         function createTravelerGeometry() {
             const group = new THREE.Group();
 
-            // Bright neon colors so they're easy to see
-            const colors = [0x00FFFF, 0xFF00FF, 0x00FF00, 0xFFFF00, 0xFF6600];
-            const bodyColor = colors[Math.floor(Math.random() * colors.length)];
+            const bodyColor = 0xCCFF00;
 
             const bodyMaterial = new THREE.MeshStandardMaterial({
                 color: bodyColor,
@@ -1605,6 +2121,18 @@
             for (let i = travelers.length - 1; i >= 0; i--) {
                 const traveler = travelers[i];
 
+                // Boosted traveler speeds off into the distance
+                if (traveler.userData.boosted) {
+                    traveler.position.z -= traveler.userData.boostVel;
+                    traveler.userData.boostVel *= 1.08; // accelerate away
+                    traveler.rotation.x = -0.6; // lean forward
+                    if (traveler.position.z < -400) {
+                        scene.remove(traveler);
+                        travelers.splice(i, 1);
+                    }
+                    continue;
+                }
+
                 // They move forward but slower than the road, so they come towards player
                 const relativeSpeed = playerSpeed - traveler.userData.speed;
                 traveler.position.z += relativeSpeed;
@@ -1646,23 +2174,19 @@
         }
 
         function handleTravelerCollision(traveler, index) {
-            lives--;
-            updateUI();
-            playHitSound();
+            if (traveler.userData.boosted) return;
+            playBoostSound();
+            applyTravelerBoost();
 
-            // Visual feedback
-            speedPass.uniforms.speedBlur.value = 0.8;
+            // Traveler speeds off into the distance
+            traveler.userData.boosted = true;
+            traveler.userData.boostVel = 12;
+
+            // Visual boost flash
+            speedPass.uniforms.speedBlur.value = 0.5;
             setTimeout(() => {
                 speedPass.uniforms.speedBlur.value = getSpeedBlurForLevel();
-            }, 200);
-
-            isInvincible = true;
-            setTimeout(() => { isInvincible = false; }, 1500);
-
-            scene.remove(traveler);
-            travelers.splice(index, 1);
-
-            if (lives <= 0) gameOver();
+            }, 300);
         }
 
         // ============================================
@@ -1674,7 +2198,7 @@
             if (moments >= momentsForNextLevel) {
                 try {
                     currentLevel++;
-                    momentsForNextLevel = currentLevel * 12; // Harder progression
+                    momentsForNextLevel = currentLevel * 12;
 
                     // Increase speed with smooth transition
                     targetRoadSpeed = BASE_ROAD_SPEED + (currentLevel - 1) * 0.3;
@@ -1696,12 +2220,18 @@
                     // Restore 2 lives on level up (max 3)
                     lives = Math.min(3, lives + 2);
 
-                    showLevelUp();
-                    playLevelUpSound();
-
                     updateUI();
 
-                    console.log(`Level ${currentLevel}: speed=${targetRoadSpeed.toFixed(2)}, obstacles=${obstacleSpawnInterval}ms`);
+                    if (currentLevel >= MAX_LEVEL) {
+                        // Reached the end — celebrate briefly then end the journey
+                        showLevelUp();
+                        playLevelUpSound();
+                        setTimeout(() => journeyComplete(), 2000);
+                        return;
+                    }
+
+                    showLevelUp();
+                    playLevelUpSound();
                 } catch (e) {
                     console.error('Level up error:', e);
                 }
@@ -1965,29 +2495,150 @@
             showHUD();
 
             document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.remove('visible');
+            const goScreen = document.getElementById('game-over-screen');
+            goScreen.classList.remove('visible');
+            goScreen.classList.remove('victory');
+            document.getElementById('game-over-title').textContent = 'Journey Ended';
+            document.getElementById('miracle-text').textContent = 'MIRACLE ACHIEVED';
+            document.getElementById('miracle-text').style.color = '';
+            document.getElementById('miracle-text').style.textShadow = '';
 
             playAudio();
+        }
+
+        function journeyComplete() {
+            currentState = GameState.COMPLETE;
+            hideHUD();
+
+            // Golden celebration flash
+            bloomPass.strength = 3.0;
+            document.getElementById('miracle-flash').classList.add('active');
+            document.getElementById('miracle-text').textContent = 'JOURNEY COMPLETE';
+            document.getElementById('miracle-text').classList.add('visible');
+            document.getElementById('miracle-text').style.color = '#FFD700';
+            document.getElementById('miracle-text').style.textShadow = '0 0 30px rgba(255,215,0,0.9), 0 0 60px rgba(255,180,0,0.5)';
+
+            setTimeout(() => {
+                document.getElementById('miracle-flash').classList.remove('active');
+                document.getElementById('miracle-text').classList.remove('visible');
+                stopAudio();
+                showEndScreen(true);
+            }, 2500);
+        }
+
+        function showEndScreen(isVictory) {
+            const screen = document.getElementById('game-over-screen');
+            document.getElementById('game-over-title').textContent = isVictory ? 'Journey Complete' : 'Journey Ended';
+            document.getElementById('final-level').textContent = currentLevel;
+            document.getElementById('final-moments').textContent = moments;
+            document.getElementById('final-miracles').textContent = miracleMilesCount;
+
+            // Reset form
+            document.getElementById('score-form').style.display = '';
+            document.getElementById('player-name').value = localStorage.getItem('mm_player_name') || '';
+            document.getElementById('player-email').value = localStorage.getItem('mm_player_email') || '';
+            document.getElementById('form-message').textContent = '';
+            document.getElementById('submit-score-btn').disabled = false;
+            document.getElementById('submit-score-btn').textContent = 'Save Score';
+
+            if (isVictory) {
+                screen.classList.add('victory');
+            } else {
+                screen.classList.remove('victory');
+            }
+            screen.classList.add('visible');
         }
 
         function gameOver() {
             currentState = GameState.GAME_OVER;
             hideHUD();
             stopAudio();
-
-            document.getElementById('final-level').textContent = currentLevel;
-            document.getElementById('final-moments').textContent = moments;
-            document.getElementById('final-miracles').textContent = miracleMilesCount;
-            document.getElementById('game-over-screen').classList.add('visible');
+            showEndScreen(false);
         }
 
-        document.getElementById('start-button').addEventListener('click', () => {
+        // ============================================
+        // EMAIL GATE
+        // ============================================
+        function initEmailGate() {
+            const storedEmail = localStorage.getItem('mm_player_email');
+            const storedName = localStorage.getItem('mm_player_name');
+            if (storedEmail) document.getElementById('gate-email').value = storedEmail;
+            if (storedName) document.getElementById('gate-name').value = storedName;
+        }
+
+        document.getElementById('start-button').addEventListener('click', (e) => {
+            e.target.blur();
+            const name = document.getElementById('gate-name').value.trim();
+            const email = document.getElementById('gate-email').value.trim();
+
+            if (!name) {
+                document.getElementById('gate-message').textContent = 'Please enter your name.';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                document.getElementById('gate-message').textContent = 'Please enter a valid email.';
+                return;
+            }
+            localStorage.setItem('mm_player_name', name);
+            localStorage.setItem('mm_player_email', email);
+            if (supabase) {
+                supabase.from('email_signups').insert({ email, name }).catch(() => {});
+            }
+
             initAudio();
             initSoundEffects();
             startGame();
         });
 
-        document.getElementById('restart-button').addEventListener('click', startGame);
+        document.getElementById('restart-button').addEventListener('click', (e) => {
+            e.target.blur();
+            startGame();
+        });
+
+        // Prevent spacebar from triggering focused buttons (browsers fire click on keyup)
+        window.addEventListener('keydown', (e) => { if (e.code === 'Space') e.preventDefault(); });
+        window.addEventListener('keyup',   (e) => { if (e.code === 'Space') e.preventDefault(); });
+
+        // Submit score
+        document.getElementById('submit-score-btn').addEventListener('click', async (e) => {
+            const name = document.getElementById('player-name').value.trim();
+            if (!name) {
+                document.getElementById('form-message').textContent = 'Please enter your name.';
+                return;
+            }
+            const btn = e.target;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            document.getElementById('form-message').textContent = '';
+
+            const email = document.getElementById('player-email').value.trim();
+            const { error } = await dbSubmitScore(name, email);
+
+            if (error && error !== 'not_configured') {
+                btn.disabled = false;
+                btn.textContent = 'Save Score';
+                document.getElementById('form-message').textContent = 'Could not save — try again.';
+            } else {
+                document.getElementById('score-form').style.display = 'none';
+                await openLeaderboard();
+            }
+        });
+
+        // Skip — just view leaderboard without saving
+        document.getElementById('skip-score-btn').addEventListener('click', async () => {
+            document.getElementById('score-form').style.display = 'none';
+            await openLeaderboard();
+        });
+
+        // Close leaderboard
+        document.getElementById('lb-close-btn').addEventListener('click', () => {
+            document.getElementById('leaderboard-overlay').classList.remove('visible');
+        });
+
+        // View leaderboard from start screen
+        document.getElementById('start-leaderboard-btn').addEventListener('click', async () => {
+            await openLeaderboard();
+        });
 
         // ============================================
         // RESIZE
@@ -2011,6 +2662,8 @@
             createMannequin();
             createClouds();
             createSpeedLines();
+            createStarField();
+            initEmailGate();
         }
 
         // ============================================
@@ -2026,6 +2679,15 @@
 
             updateAudioData();
             speedPass.uniforms.time.value = currentTime * 0.001;
+
+            // Smoothly fade stars in/out and add gentle twinkle
+            if (starField) {
+                const twinkle = Math.sin(currentTime * 0.0008) * 0.06 + Math.sin(currentTime * 0.0021) * 0.04;
+                const current = starField.material.opacity;
+                starField.material.opacity = current + (targetStarOpacity - current) * 0.03 + (targetStarOpacity > 0 ? twinkle * targetStarOpacity : 0);
+                starField.material.opacity = Math.max(0, starField.material.opacity);
+                starField.position.copy(camera.position); // keep centred on camera
+            }
 
             try {
                 if (currentState === GameState.PLAYING || currentState === GameState.MIRACLE_MILE) {
@@ -2045,10 +2707,9 @@
                     bloomPass.strength = 0.7 + audioData.mids * 0.4;
 
                     // Camera shake on bass hits
-                    const bassShake = audioData.bass * 0.15;
-                    camera.position.x = Math.sin(currentTime * 0.0004) * 0.2 + (Math.random() - 0.5) * bassShake;
-                    camera.position.y = 4 + audioData.bass * 0.3; // Subtle lift on bass
-                    camera.rotation.z = Math.sin(currentTime * 0.0003) * 0.015 + (Math.random() - 0.5) * bassShake * 0.1;
+                    camera.position.x = Math.sin(currentTime * 0.0004) * 0.15;
+                    camera.position.y = 4 + audioData.bass * 0.1;
+                    camera.rotation.z = Math.sin(currentTime * 0.0003) * 0.008;
 
                     // FOV pulse with bass (subtle breathing effect)
                     if (currentState !== GameState.MIRACLE_MILE) {
@@ -2074,6 +2735,167 @@
 
         init();
         animate(0);
+
+        // ============================================
+        // INSTRUCTION 3D PREVIEWS
+        // ============================================
+        (function setupInstructionPreviews() {
+            const previews = [
+                { id: 'preview-apple',    buildModel: buildPreviewApple,    camY: 0.1,  camZ: 1.4 },
+                { id: 'preview-soul',     buildModel: buildPreviewSoul,     camY: 0.0,  camZ: 1.6 },
+                { id: 'preview-traveler', buildModel: buildPreviewTraveler, camY: 0.0,  camZ: 1.6 },
+                { id: 'preview-clock',    buildModel: buildPreviewClock,    camY: 0.35, camZ: 2.8 },
+            ];
+
+            function buildPreviewApple() {
+                const g = new THREE.Group();
+                const geo = new THREE.SphereGeometry(0.35, 32, 32);
+                geo.scale(1, 0.9, 1);
+                const apple = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x4CA64C, roughness: 0.3, metalness: 0.1, emissive: 0x1A5C1A, emissiveIntensity: 0.3 }));
+                g.add(apple);
+                const stem = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.03, 0.04, 0.15, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x4A3728, roughness: 0.8 })
+                );
+                stem.position.y = 0.35;
+                stem.rotation.z = 0.2;
+                g.add(stem);
+                const leafGeo = new THREE.SphereGeometry(0.1, 16, 16);
+                leafGeo.scale(1, 0.3, 0.5);
+                const leaf = new THREE.Mesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.5 }));
+                leaf.position.set(0.08, 0.38, 0);
+                leaf.rotation.z = -0.5;
+                g.add(leaf);
+                return g;
+            }
+
+            function buildPreviewSoul() {
+                const g = new THREE.Group();
+                const mat = new THREE.MeshStandardMaterial({ color: 0xAADDFF, roughness: 0.3, metalness: 0.5, transparent: true, opacity: 0.85, emissive: 0x4488CC, emissiveIntensity: 0.6 });
+                const bodyGeo = new THREE.CapsuleGeometry(0.15, 0.5, 16, 32);
+                const body = new THREE.Mesh(bodyGeo, mat);
+                g.add(body);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 32, 32), mat);
+                head.position.set(0, 0.42, 0);
+                g.add(head);
+                // Wisps below
+                for (let i = 0; i < 3; i++) {
+                    const wisp = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08 - i * 0.02, 16, 16),
+                        new THREE.MeshBasicMaterial({ color: 0xAADDFF, transparent: true, opacity: 0.35 - i * 0.1 })
+                    );
+                    wisp.position.set(0, -0.4 - i * 0.12, 0);
+                    g.add(wisp);
+                }
+                return g;
+            }
+
+            function buildPreviewTraveler() {
+                const g = new THREE.Group();
+                const mat = new THREE.MeshStandardMaterial({ color: 0xCCFF00, roughness: 0.3, metalness: 0.2, emissive: 0xCCFF00, emissiveIntensity: 0.3 });
+                // Upright figure
+                const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.5, 16, 32), mat);
+                g.add(torso);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 32, 32), mat);
+                head.position.set(0, 0.42, 0);
+                g.add(head);
+                const armGeo = new THREE.CapsuleGeometry(0.04, 0.35, 8, 16);
+                const lArm = new THREE.Mesh(armGeo, mat);
+                lArm.position.set(-0.2, 0.1, 0);
+                lArm.rotation.z = 0.3;
+                g.add(lArm);
+                const rArm = new THREE.Mesh(armGeo, mat);
+                rArm.position.set(0.2, 0.1, 0);
+                rArm.rotation.z = -0.3;
+                g.add(rArm);
+                const legGeo = new THREE.CapsuleGeometry(0.05, 0.4, 8, 16);
+                const lLeg = new THREE.Mesh(legGeo, mat);
+                lLeg.position.set(-0.08, -0.5, 0);
+                g.add(lLeg);
+                const rLeg = new THREE.Mesh(legGeo, mat);
+                rLeg.position.set(0.08, -0.5, 0);
+                g.add(rLeg);
+                return g;
+            }
+
+            function buildPreviewClock() {
+                const g = new THREE.Group();
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xE53935, roughness: 0.4, metalness: 0.3, emissive: 0xE53935, emissiveIntensity: 0.2 });
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.55, 32), bodyMat);
+                body.rotation.x = Math.PI / 2;
+                g.add(body);
+                const face = new THREE.Mesh(new THREE.CircleGeometry(0.43, 32), new THREE.MeshStandardMaterial({ color: 0xFFFDE7, roughness: 0.9 }));
+                face.position.z = 0.28;
+                g.add(face);
+                const handMat = new THREE.MeshStandardMaterial({ color: 0x1A1A1A });
+                const hHand = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.02), handMat);
+                hHand.position.set(-0.04, 0.11, 0.29);
+                hHand.rotation.z = 0.6;
+                g.add(hHand);
+                const mHand = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.30, 0.02), handMat);
+                mHand.position.set(0.05, 0.13, 0.29);
+                mHand.rotation.z = -0.3;
+                g.add(mHand);
+                const bellMat = new THREE.MeshStandardMaterial({ color: 0xFFD600, roughness: 0.3, metalness: 0.6, emissive: 0xFFD600, emissiveIntensity: 0.15 });
+                const bellL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), bellMat);
+                bellL.position.set(-0.35, 0.65, 0);
+                g.add(bellL);
+                const bellR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), bellMat);
+                bellR.position.set(0.35, 0.65, 0);
+                g.add(bellR);
+                const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7, 8), new THREE.MeshStandardMaterial({ color: 0xFFD600, metalness: 0.6 }));
+                bar.rotation.z = Math.PI / 2;
+                bar.position.set(0, 0.65, 0);
+                g.add(bar);
+                return g;
+            }
+
+            const size = 72;
+            const previewData = [];
+
+            // Use a single offscreen renderer to avoid multiple WebGL contexts
+            const offscreen = document.createElement('canvas');
+            offscreen.width = size;
+            offscreen.height = size;
+            const pRenderer = new THREE.WebGLRenderer({ canvas: offscreen, alpha: true, antialias: true });
+            pRenderer.setSize(size, size, false);
+            pRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+            pRenderer.toneMappingExposure = 1.2;
+
+            previews.forEach(({ id, buildModel, camY, camZ }) => {
+                const canvas = document.getElementById(id);
+                if (!canvas) return;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                const pScene = new THREE.Scene();
+                const pCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 10);
+                pCamera.position.set(0, camY, camZ);
+                pCamera.lookAt(0, camY * 0.5, 0);
+
+                pScene.add(new THREE.AmbientLight(0xffffff, 0.8));
+                const dLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                dLight.position.set(2, 3, 3);
+                pScene.add(dLight);
+
+                const model = buildModel();
+                pScene.add(model);
+
+                previewData.push({ ctx, scene: pScene, camera: pCamera, model });
+            });
+
+            function animatePreviews() {
+                requestAnimationFrame(animatePreviews);
+                previewData.forEach(p => {
+                    p.model.rotation.y += 0.015;
+                    pRenderer.render(p.scene, p.camera);
+                    p.ctx.clearRect(0, 0, size, size);
+                    p.ctx.drawImage(offscreen, 0, 0);
+                });
+            }
+            animatePreviews();
+        })();
 
     </script>
 </body>
