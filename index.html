@@ -2598,8 +2598,29 @@
         function initEmailGate() {
             const storedEmail = localStorage.getItem('mm_player_email');
             const storedName = localStorage.getItem('mm_player_name');
-            if (storedEmail) document.getElementById('gate-email').value = storedEmail;
-            if (storedName) document.getElementById('gate-name').value = storedName;
+            if (storedEmail && storedName) {
+                // Returning player — skip the form, just show a welcome back + play button
+                const gate = document.getElementById('email-gate');
+                gate.innerHTML = `
+                    <p style="color:#4A6B8A;font-size:15px;margin-bottom:4px;">Welcome back, <strong>${storedName.replace(/</g,'&lt;')}</strong></p>
+                    <button class="start-button" id="start-button">Begin Journey</button>
+                    <button class="skip-score-btn" id="gate-change-btn" style="margin-top:4px;">Not you? Change details</button>
+                `;
+                document.getElementById('start-button').addEventListener('click', (e) => {
+                    e.target.blur();
+                    initAudio();
+                    initSoundEffects();
+                    startGame();
+                });
+                document.getElementById('gate-change-btn').addEventListener('click', () => {
+                    localStorage.removeItem('mm_player_name');
+                    localStorage.removeItem('mm_player_email');
+                    location.reload();
+                });
+            } else {
+                if (storedEmail) document.getElementById('gate-email').value = storedEmail;
+                if (storedName) document.getElementById('gate-name').value = storedName;
+            }
         }
 
         document.getElementById('start-button').addEventListener('click', (e) => {
@@ -2631,9 +2652,13 @@
             startGame();
         });
 
-        // Prevent spacebar from triggering focused buttons (browsers fire click on keyup)
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space') e.preventDefault(); });
-        window.addEventListener('keyup',   (e) => { if (e.code === 'Space') e.preventDefault(); });
+        // Prevent spacebar from triggering focused buttons, but allow typing in inputs
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) e.preventDefault();
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) e.preventDefault();
+        });
 
         // Submit score
         document.getElementById('submit-score-btn').addEventListener('click', async (e) => {
