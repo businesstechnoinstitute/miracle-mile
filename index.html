@@ -163,7 +163,27 @@
             pointer-events: none;
         }
 
+        .title-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .smoke-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 160px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .title {
+            position: relative;
+            z-index: 1;
             font-size: 42px;
             color: #4A6B8A;
             text-align: center;
@@ -173,6 +193,8 @@
         }
 
         .subtitle {
+            position: relative;
+            z-index: 1;
             font-size: 16px;
             color: #7A9BB8;
             text-align: center;
@@ -631,8 +653,11 @@
     </div>
 
     <div class="start-screen" id="start-screen">
-        <h1 class="title">MIRACLE MILE</h1>
-        <p class="subtitle">A journey through memory</p>
+        <div class="title-wrap">
+            <canvas class="smoke-canvas" id="smoke-canvas"></canvas>
+            <h1 class="title">MIRACLE MILE</h1>
+            <p class="subtitle">A journey through memory</p>
+        </div>
 
         <div class="instructions">
             <div class="inst-item"><canvas class="inst-preview" id="preview-apple"></canvas> Collect apples — score points &amp; fill memory</div>
@@ -2895,6 +2920,67 @@
                 });
             }
             animatePreviews();
+        })();
+
+        // ============================================
+        // TITLE SMOKE EFFECT
+        // ============================================
+        (function setupSmoke() {
+            const canvas = document.getElementById('smoke-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = 420, H = 160;
+            canvas.width = W;
+            canvas.height = H;
+
+            const particles = [];
+            const MAX = 60;
+
+            function spawn() {
+                particles.push({
+                    x: W / 2 + (Math.random() - 0.5) * 180,
+                    y: H / 2 + (Math.random() - 0.5) * 20,
+                    r: 20 + Math.random() * 30,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: -0.15 - Math.random() * 0.3,
+                    life: 1,
+                    decay: 0.003 + Math.random() * 0.004,
+                    growth: 0.15 + Math.random() * 0.2
+                });
+            }
+
+            function tick() {
+                requestAnimationFrame(tick);
+                ctx.clearRect(0, 0, W, H);
+
+                // Spawn new particles
+                if (particles.length < MAX) spawn();
+                if (particles.length < MAX && Math.random() > 0.5) spawn();
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.r += p.growth;
+                    p.life -= p.decay;
+
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.beginPath();
+                    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+                    const alpha = p.life * 0.12;
+                    grad.addColorStop(0, `rgba(180, 200, 220, ${alpha})`);
+                    grad.addColorStop(0.5, `rgba(200, 215, 230, ${alpha * 0.5})`);
+                    grad.addColorStop(1, `rgba(220, 230, 240, 0)`);
+                    ctx.fillStyle = grad;
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            tick();
         })();
 
     </script>
