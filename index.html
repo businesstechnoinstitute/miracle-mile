@@ -15,6 +15,12 @@
             user-select: none;
         }
 
+        input, textarea, select {
+            touch-action: auto;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
         body {
             overflow: hidden;
             background: linear-gradient(180deg, #87CEEB 0%, #E0F4FF 50%, #FFFFFF 100%);
