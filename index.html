@@ -690,14 +690,14 @@
             <div class="inst-item"><canvas class="inst-preview" id="preview-clock"></canvas> Avoid alarm clocks — they slow you down &amp; cost a life</div>
         </div>
 
-        <div class="email-gate" id="email-gate">
-            <input type="text" id="gate-name" class="score-input" placeholder="Your dreamer name" maxlength="30" autocomplete="name">
-            <input type="email" id="gate-email" class="score-input" placeholder="Your email" autocomplete="email">
-            <button class="start-button" id="start-button">Begin Journey</button>
+        <div class="email-gate" id="email-gate" style="pointer-events:auto;touch-action:auto;position:relative;z-index:999;">
+            <input type="text" id="gate-name" class="score-input" placeholder="Your dreamer name" maxlength="30" autocomplete="name" tabindex="1" style="pointer-events:auto!important;touch-action:manipulation!important;-webkit-user-select:text!important;user-select:text!important;position:relative;z-index:9999;font-size:16px;">
+            <input type="email" id="gate-email" class="score-input" placeholder="Your email" autocomplete="email" tabindex="2" style="pointer-events:auto!important;touch-action:manipulation!important;-webkit-user-select:text!important;user-select:text!important;position:relative;z-index:9999;font-size:16px;">
+            <button class="start-button" id="start-button" tabindex="3">Begin Journey</button>
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note">Best experienced with headphones</p>
+        <p class="audio-note" id="version-tag" style="cursor:pointer;">v2 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -747,6 +747,26 @@
             "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
         }
     }
+    </script>
+
+    <!-- Standalone input fix — runs immediately, no dependencies -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force all inputs to be interactive regardless of any CSS/JS issues
+            document.querySelectorAll('input').forEach(function(input) {
+                input.addEventListener('touchstart', function(e) {
+                    e.stopPropagation();
+                    this.focus();
+                }, { passive: false });
+                input.addEventListener('mousedown', function(e) {
+                    e.stopPropagation();
+                });
+                input.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.focus();
+                });
+            });
+        });
     </script>
 
     <script type="module">
