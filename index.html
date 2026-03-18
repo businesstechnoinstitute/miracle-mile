@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Miracle Mile</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='32' cy='36' rx='22' ry='20' fill='%234CA64C'/><ellipse cx='28' cy='30' rx='6' ry='4' fill='%2366CC66' opacity='0.5'/><rect x='30' y='10' width='4' height='12' rx='2' fill='%234A3728' transform='rotate(10 32 16)'/><ellipse cx='40' cy='14' rx='8' ry='4' fill='%23228B22' transform='rotate(-30 40 14)'/></svg>">
     <style>
@@ -32,6 +32,11 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: none;
+        }
+
+        #game-canvas.active {
+            pointer-events: auto;
         }
 
         .ui-overlay {
@@ -162,6 +167,13 @@
             overflow-y: auto;
             padding: 30px 20px;
             touch-action: auto;
+            -webkit-user-select: auto;
+            user-select: auto;
+            pointer-events: auto;
+        }
+
+        .start-screen * {
+            pointer-events: auto;
         }
 
         .start-screen.hidden {
@@ -398,17 +410,19 @@
             padding: 10px 16px;
             border: 1.5px solid rgba(155,107,193,0.3);
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 16px !important;
             font-family: 'Georgia', serif;
             background: rgba(255,255,255,0.8);
             color: #4A3B6A;
             outline: none;
             box-sizing: border-box;
             transition: border-color 0.2s;
-            pointer-events: auto;
-            touch-action: auto;
-            -webkit-user-select: text;
-            user-select: text;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
+            position: relative;
+            z-index: 10;
         }
 
         .score-input:focus { border-color: #9B6BC1; }
@@ -2533,6 +2547,7 @@
             showHUD();
 
             document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-canvas').classList.add('active');
             const goScreen = document.getElementById('game-over-screen');
             goScreen.classList.remove('visible');
             goScreen.classList.remove('victory');
@@ -2546,6 +2561,7 @@
 
         function journeyComplete() {
             currentState = GameState.COMPLETE;
+            document.getElementById('game-canvas').classList.remove('active');
             hideHUD();
 
             // Golden celebration flash
@@ -2589,6 +2605,7 @@
 
         function gameOver() {
             currentState = GameState.GAME_OVER;
+            document.getElementById('game-canvas').classList.remove('active');
             hideHUD();
             stopAudio();
             showEndScreen(false);
