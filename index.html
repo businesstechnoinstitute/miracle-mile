@@ -20,9 +20,12 @@
         }
 
         body {
-            overflow: hidden;
             background: linear-gradient(180deg, #87CEEB 0%, #E0F4FF 50%, #FFFFFF 100%);
             font-family: 'Georgia', serif;
+        }
+
+        body.playing {
+            overflow: hidden;
         }
 
         #game-canvas {
@@ -33,10 +36,12 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
+            display: none;
         }
 
         #game-canvas.active {
             pointer-events: auto;
+            display: block;
         }
 
         .ui-overlay {
@@ -697,7 +702,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note" id="version-tag" style="cursor:pointer;">v2 — Best experienced with headphones</p>
+        <p class="audio-note" id="version-tag" style="cursor:pointer;">v3 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -2568,6 +2573,7 @@
 
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('game-canvas').classList.add('active');
+            document.body.classList.add('playing');
             const goScreen = document.getElementById('game-over-screen');
             goScreen.classList.remove('visible');
             goScreen.classList.remove('victory');
@@ -2582,6 +2588,7 @@
         function journeyComplete() {
             currentState = GameState.COMPLETE;
             document.getElementById('game-canvas').classList.remove('active');
+            document.body.classList.remove('playing');
             hideHUD();
 
             // Golden celebration flash
@@ -2626,6 +2633,7 @@
         function gameOver() {
             currentState = GameState.GAME_OVER;
             document.getElementById('game-canvas').classList.remove('active');
+            document.body.classList.remove('playing');
             hideHUD();
             stopAudio();
             showEndScreen(false);
