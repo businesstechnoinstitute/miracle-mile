@@ -36,12 +36,12 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
-            display: none;
+            visibility: hidden;
         }
 
         #game-canvas.active {
             pointer-events: auto;
-            display: block;
+            visibility: visible;
         }
 
         .ui-overlay {
@@ -698,7 +698,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note">v6 — Best experienced with headphones</p>
+        <p class="audio-note">v7 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -744,13 +744,10 @@
     {
         "imports": {
             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
         }
     }
     </script>
-
-    <!-- Load Supabase via regular script tag (avoids esm.sh module issues) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script type="module">
         import * as THREE from 'three';
@@ -760,14 +757,15 @@
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
         // ============================================
-        // SUPABASE CONFIG
+        // SUPABASE CONFIG (loaded dynamically so it can't crash the game)
         // ============================================
         const SUPABASE_URL  = 'https://swcabiudhsvgbbjkymvj.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3Y2FiaXVkaHN2Z2Jiamt5bXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MTQ2MjQsImV4cCI6MjA4OTI5MDYyNH0.q-lDuj0ZgB689zFdAAr9ZebYO0f_2td9jqItkPZnMuA';
 
         let supabase = null;
         try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
         } catch (e) {
             console.warn('Supabase failed to load — leaderboard disabled:', e);
         }
