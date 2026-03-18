@@ -653,6 +653,11 @@
     </style>
 </head>
 <body>
+    <!-- DEBUG: bare test input — if you can type here but not below, the issue is in the game CSS/JS -->
+    <div id="debug-bar" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0;padding:8px;display:flex;gap:8px;align-items:center;">
+        <input id="debug-input" type="text" placeholder="TEST: type here" style="font-size:16px;padding:8px;border:2px solid #000;flex:1;">
+        <button onclick="document.getElementById('debug-bar').remove()" style="padding:8px;font-size:14px;">Close</button>
+    </div>
     <canvas id="game-canvas"></canvas>
 
     <div class="ui-overlay">
@@ -702,7 +707,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note" id="version-tag" style="cursor:pointer;">v3 — Best experienced with headphones</p>
+        <p class="audio-note" id="version-tag" style="cursor:pointer;">v4 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -749,30 +754,12 @@
         "imports": {
             "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
             "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-            "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
         }
     }
     </script>
 
-    <!-- Standalone input fix — runs immediately, no dependencies -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Force all inputs to be interactive regardless of any CSS/JS issues
-            document.querySelectorAll('input').forEach(function(input) {
-                input.addEventListener('touchstart', function(e) {
-                    e.stopPropagation();
-                    this.focus();
-                }, { passive: false });
-                input.addEventListener('mousedown', function(e) {
-                    e.stopPropagation();
-                });
-                input.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    this.focus();
-                });
-            });
-        });
-    </script>
+    <!-- Load Supabase via regular script tag (avoids esm.sh module issues) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script type="module">
         import * as THREE from 'three';
@@ -782,15 +769,14 @@
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
         // ============================================
-        // SUPABASE CONFIG (loaded dynamically so it can't crash the game)
+        // SUPABASE CONFIG
         // ============================================
         const SUPABASE_URL  = 'https://swcabiudhsvgbbjkymvj.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3Y2FiaXVkaHN2Z2Jiamt5bXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MTQ2MjQsImV4cCI6MjA4OTI5MDYyNH0.q-lDuj0ZgB689zFdAAr9ZebYO0f_2td9jqItkPZnMuA';
 
         let supabase = null;
         try {
-            const { createClient } = await import('@supabase/supabase-js');
-            supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
         } catch (e) {
             console.warn('Supabase failed to load — leaderboard disabled:', e);
         }
