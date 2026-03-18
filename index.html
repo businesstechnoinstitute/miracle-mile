@@ -252,7 +252,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
+            display: none;
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
@@ -261,13 +261,11 @@
             box-sizing: border-box;
             background: linear-gradient(180deg, #D4B8E8 0%, #F4E8FC 50%, #FFFFFF 100%);
             z-index: 200;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.8s ease;
             touch-action: auto;
         }
 
         .game-over-screen.visible {
+            display: flex;
             opacity: 1;
             pointer-events: auto;
         }
@@ -415,18 +413,17 @@
             padding: 10px 16px;
             border: 1.5px solid rgba(155,107,193,0.3);
             border-radius: 20px;
-            font-size: 16px !important;
+            font-size: 16px;
             font-family: 'Georgia', serif;
             background: rgba(255,255,255,0.8);
             color: #4A3B6A;
             outline: none;
             box-sizing: border-box;
             transition: border-color 0.2s;
-            pointer-events: auto !important;
-            touch-action: manipulation !important;
-            -webkit-user-select: text !important;
-            user-select: text !important;
-            position: relative;
+            pointer-events: auto;
+            touch-action: manipulation;
+            -webkit-user-select: text;
+            user-select: text;
             z-index: 10;
         }
 
@@ -474,20 +471,19 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
             z-index: 300;
-            opacity: 0;
-            pointer-events: none;
             transition: opacity 0.4s ease;
             padding: 20px;
             box-sizing: border-box;
         }
 
         .leaderboard-overlay.visible {
+            display: flex;
             opacity: 1;
             pointer-events: auto;
         }
@@ -653,12 +649,7 @@
     </style>
 </head>
 <body>
-    <!-- DEBUG: bare test input — if you can type here but not below, the issue is in the game CSS/JS -->
-    <div id="debug-bar" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0;padding:8px;display:flex;gap:8px;align-items:center;">
-        <input id="debug-input" type="text" placeholder="TEST: type here" style="font-size:16px;padding:8px;border:2px solid #000;flex:1;">
-        <button onclick="document.getElementById('debug-bar').remove()" style="padding:8px;font-size:14px;">Close</button>
-    </div>
-    <canvas id="game-canvas"></canvas>
+<canvas id="game-canvas"></canvas>
 
     <div class="ui-overlay">
         <div class="hud" id="hud">
@@ -700,14 +691,14 @@
             <div class="inst-item"><canvas class="inst-preview" id="preview-clock"></canvas> Avoid alarm clocks — they slow you down &amp; cost a life</div>
         </div>
 
-        <div class="email-gate" id="email-gate" style="pointer-events:auto;touch-action:auto;position:relative;z-index:999;">
-            <input type="text" id="gate-name" class="score-input" placeholder="Your dreamer name" maxlength="30" autocomplete="name" tabindex="1" style="pointer-events:auto!important;touch-action:manipulation!important;-webkit-user-select:text!important;user-select:text!important;position:relative;z-index:9999;font-size:16px;">
-            <input type="email" id="gate-email" class="score-input" placeholder="Your email" autocomplete="email" tabindex="2" style="pointer-events:auto!important;touch-action:manipulation!important;-webkit-user-select:text!important;user-select:text!important;position:relative;z-index:9999;font-size:16px;">
-            <button class="start-button" id="start-button" tabindex="3">Begin Journey</button>
+        <div class="email-gate" id="email-gate">
+            <input type="text" id="gate-name" class="score-input" placeholder="Your dreamer name" maxlength="30" autocomplete="name">
+            <input type="email" id="gate-email" class="score-input" placeholder="Your email" autocomplete="email">
+            <button class="start-button" id="start-button">Begin Journey</button>
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note" id="version-tag" style="cursor:pointer;">v4 — Best experienced with headphones</p>
+        <p class="audio-note">v6 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
