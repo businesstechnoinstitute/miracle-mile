@@ -1951,7 +1951,7 @@
         // OBSTACLES
         // ============================================
         const obstacles = [];
-        let obstacleSpawnInterval = 3000;
+        let obstacleSpawnInterval = 2000;
         let lastObstacleSpawn = 0;
 
         function createObstacleGeometry() {
@@ -2281,7 +2281,7 @@
                     targetRoadSpeed = BASE_ROAD_SPEED + (currentLevel - 1) * 0.3;
 
                     // Faster obstacle spawns
-                    obstacleSpawnInterval = Math.max(1000, 3000 - (currentLevel - 1) * 220);
+                    obstacleSpawnInterval = Math.max(700, 2000 - (currentLevel - 1) * 150);
 
                     // Faster collectible spawns
                     collectibleSpawnInterval = Math.max(600, 1500 - (currentLevel - 1) * 100);
@@ -2533,7 +2533,7 @@
             targetRoadSpeed = BASE_ROAD_SPEED;
             speedMultiplier = 1.0;
             targetSpeedMultiplier = 1.0;
-            obstacleSpawnInterval = 3000;
+            obstacleSpawnInterval = 2000;
             collectibleSpawnInterval = 1500;
             soulSpawnInterval = 5000;
             mannequinTargetX = 0;
