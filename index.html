@@ -698,7 +698,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note">v9 — Best experienced with headphones</p>
+        <p class="audio-note">Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -2649,7 +2649,7 @@
                 // Returning player — skip the form, show welcome back
                 const gate = document.getElementById('email-gate');
                 gate.innerHTML = `
-                    <p style="color:#4A6B8A;font-size:15px;margin-bottom:4px;">Welcome back, <strong>${escapeHtml(storedName)}</strong></p>
+                    <p style="color:#4A6B8A;font-size:15px;margin-bottom:4px;font-style:italic;">Ready to dream again, <strong>${escapeHtml(storedName)}</strong>?</p>
                     <button class="start-button" id="start-button">Begin Journey</button>
                     <button class="skip-score-btn" id="gate-change-btn" style="margin-top:4px;">Not you? Change details</button>
                 `;
