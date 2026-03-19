@@ -698,7 +698,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note">v7 — Best experienced with headphones</p>
+        <p class="audio-note">v8 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -762,17 +762,31 @@
         const SUPABASE_URL  = 'https://swcabiudhsvgbbjkymvj.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3Y2FiaXVkaHN2Z2Jiamt5bXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3MTQ2MjQsImV4cCI6MjA4OTI5MDYyNH0.q-lDuj0ZgB689zFdAAr9ZebYO0f_2td9jqItkPZnMuA';
 
+        // Lazy-load Supabase only when needed (never blocks game init)
         let supabase = null;
-        try {
-            const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-            supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
-        } catch (e) {
-            console.warn('Supabase failed to load — leaderboard disabled:', e);
+        let supabaseLoading = null;
+        function getSupabase() {
+            if (supabase) return Promise.resolve(supabase);
+            if (!supabaseLoading) {
+                supabaseLoading = import('https://esm.sh/@supabase/supabase-js@2')
+                    .then(({ createClient }) => {
+                        supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
+                        return supabase;
+                    })
+                    .catch(e => {
+                        console.warn('Supabase failed to load:', e);
+                        return null;
+                    });
+            }
+            return supabaseLoading;
         }
+        // Start loading in background (but don't await it)
+        getSupabase();
 
         async function dbSubmitScore(name, email) {
-            if (!supabase) return { error: 'not_configured' };
-            return supabase.from('leaderboard').insert({
+            const sb = await getSupabase();
+            if (!sb) return { error: 'not_configured' };
+            return sb.from('leaderboard').insert({
                 name: name.trim(),
                 email: email.trim() || null,
                 score: moments,
@@ -782,8 +796,9 @@
         }
 
         async function dbFetchLeaderboard() {
-            if (!supabase) return [];
-            const { data, error } = await supabase
+            const sb = await getSupabase();
+            if (!sb) return [];
+            const { data, error } = await sb
                 .from('leaderboard')
                 .select('name, score, level, miracles')
                 .order('score', { ascending: false })
@@ -793,7 +808,7 @@
 
         function renderLeaderboard(entries) {
             const list = document.getElementById('leaderboard-list');
-            if (!supabase) {
+            if (!supabase && !supabaseLoading) {
                 list.innerHTML = '<p class="lb-empty">Leaderboard not configured yet.<br>Add your Supabase keys to enable it.</p>';
             } else if (entries.length === 0) {
                 list.innerHTML = '<p class="lb-empty">No scores yet — be the first!</p>';
@@ -2660,9 +2675,9 @@
                     }
                     localStorage.setItem('mm_player_name', name);
                     localStorage.setItem('mm_player_email', email);
-                    if (supabase) {
-                        supabase.from('email_signups').insert({ email, name }).catch(() => {});
-                    }
+                    getSupabase().then(sb => {
+                        if (sb) sb.from('email_signups').insert({ email, name }).catch(() => {});
+                    });
 
                     initAudio();
                     initSoundEffects();
