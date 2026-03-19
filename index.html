@@ -1450,13 +1450,16 @@
 
             // Speed smoke trail
             for (let i = 0; i < TRAIL_LENGTH; i++) {
-                const size = 0.08 + i * 0.035;
+                const size = 0.06 + i * 0.025;
                 const trailGeometry = new THREE.SphereGeometry(size, 8, 8);
-                trailGeometry.scale(0.6, 0.5, 1.8);
+                trailGeometry.scale(0.6, 0.3, 1.8);
+                // Fade in from invisible near character, peak in middle, fade out at end
+                const fadeIn = Math.min(1, i / 4);
+                const fadeOut = 1 - i / TRAIL_LENGTH;
                 const trailMaterial = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color().setHSL(0.0, 0.0, 0.92),
+                    color: new THREE.Color().setHSL(0.0, 0.0, 0.75),
                     transparent: true,
-                    opacity: 0.25 * (1 - i / TRAIL_LENGTH),
+                    opacity: 0.15 * fadeIn * fadeOut,
                     depthWrite: false
                 });
                 const particle = new THREE.Mesh(trailGeometry, trailMaterial);
