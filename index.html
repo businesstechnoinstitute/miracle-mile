@@ -698,7 +698,7 @@
             <p class="form-message" id="gate-message"></p>
         </div>
         <button class="leaderboard-btn" id="start-leaderboard-btn">View Leaderboard</button>
-        <p class="audio-note">v8 — Best experienced with headphones</p>
+        <p class="audio-note">v9 — Best experienced with headphones</p>
     </div>
 
     <div class="game-over-screen" id="game-over-screen">
@@ -1448,15 +1448,16 @@
             scene.add(mannequinGroup);
             mannequin = mannequinGroup;
 
-            // Smoke trail
+            // Speed smoke trail
             for (let i = 0; i < TRAIL_LENGTH; i++) {
-                const size = 0.15 + i * 0.02;
-                const trailGeometry = new THREE.SphereGeometry(size, 12, 12);
-                trailGeometry.scale(1, 0.6, 1.2);
+                const size = 0.08 + i * 0.035;
+                const trailGeometry = new THREE.SphereGeometry(size, 8, 8);
+                trailGeometry.scale(0.6, 0.5, 1.8);
                 const trailMaterial = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color().setHSL(0.0, 0.0, 0.95),
+                    color: new THREE.Color().setHSL(0.0, 0.0, 0.92),
                     transparent: true,
-                    opacity: 0.3 * (1 - i / TRAIL_LENGTH)
+                    opacity: 0.25 * (1 - i / TRAIL_LENGTH),
+                    depthWrite: false
                 });
                 const particle = new THREE.Mesh(trailGeometry, trailMaterial);
                 particle.position.copy(mannequinGroup.position);
@@ -1489,21 +1490,26 @@
                 }
             });
 
-            // Smoke trail — each particle chases the one ahead, spreading behind
-            for (let i = mannequinTrail.length - 1; i > 0; i--) {
-                mannequinTrail[i].position.lerp(mannequinTrail[i - 1].position, 0.12);
-                // Drift upward and outward like dissipating smoke
-                mannequinTrail[i].position.y += 0.008;
-                mannequinTrail[i].position.x += Math.sin(time * 2 + i * 0.5) * 0.003;
-                // Scale up as they age
-                const s = 1 + i * 0.04;
-                mannequinTrail[i].scale.setScalar(s);
-            }
+            // Speed smoke — streams behind the character like exhaust
             mannequinTrail[0].position.set(
                 mannequin.position.x,
-                mannequin.position.y - 0.3,
-                mannequin.position.z + 2.0
+                mannequin.position.y - 0.1,
+                mannequin.position.z + 1.2
             );
+            for (let i = 1; i < mannequinTrail.length; i++) {
+                const t = i / mannequinTrail.length;
+                // Each particle follows the one ahead, trailing further back in Z
+                mannequinTrail[i].position.x += (mannequinTrail[i - 1].position.x - mannequinTrail[i].position.x) * 0.15;
+                mannequinTrail[i].position.y += (mannequinTrail[i - 1].position.y - mannequinTrail[i].position.y) * 0.1;
+                // Push further behind with slight upward drift
+                mannequinTrail[i].position.z = mannequin.position.z + 1.2 + i * 0.35;
+                mannequinTrail[i].position.y += 0.003 * i;
+                // Subtle horizontal turbulence
+                mannequinTrail[i].position.x += Math.sin(time * 3 + i * 0.8) * 0.004 * i;
+                // Spread out as they get further back
+                const s = 1 + t * 1.5;
+                mannequinTrail[i].scale.set(s * 0.8, s * 0.6, s);
+            }
         }
 
         // ============================================
