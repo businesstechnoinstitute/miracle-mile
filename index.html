@@ -1490,25 +1490,26 @@
                 }
             });
 
-            // Speed smoke — streams behind the character like exhaust
+            // Speed smoke — streams behind character at road level
+            const roadY = 0.3; // just above road surface
             mannequinTrail[0].position.set(
                 mannequin.position.x,
-                mannequin.position.y - 0.1,
+                roadY,
                 mannequin.position.z + 1.2
             );
             for (let i = 1; i < mannequinTrail.length; i++) {
                 const t = i / mannequinTrail.length;
-                // Each particle follows the one ahead, trailing further back in Z
+                // Follow character X with lag
                 mannequinTrail[i].position.x += (mannequinTrail[i - 1].position.x - mannequinTrail[i].position.x) * 0.15;
-                mannequinTrail[i].position.y += (mannequinTrail[i - 1].position.y - mannequinTrail[i].position.y) * 0.1;
-                // Push further behind with slight upward drift
+                // Stay pinned to road level
+                mannequinTrail[i].position.y = roadY;
+                // Trail further behind
                 mannequinTrail[i].position.z = mannequin.position.z + 1.2 + i * 0.35;
-                mannequinTrail[i].position.y += 0.003 * i;
                 // Subtle horizontal turbulence
                 mannequinTrail[i].position.x += Math.sin(time * 3 + i * 0.8) * 0.004 * i;
-                // Spread out as they get further back
+                // Spread wider further back
                 const s = 1 + t * 1.5;
-                mannequinTrail[i].scale.set(s * 0.8, s * 0.6, s);
+                mannequinTrail[i].scale.set(s * 0.8, s * 0.4, s);
             }
         }
 
