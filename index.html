@@ -1450,19 +1450,20 @@
 
             // Speed smoke trail
             for (let i = 0; i < TRAIL_LENGTH; i++) {
-                const size = 0.06 + i * 0.025;
-                const trailGeometry = new THREE.SphereGeometry(size, 8, 8);
-                trailGeometry.scale(0.6, 0.3, 1.8);
+                const size = 0.04 + i * 0.02;
+                const trailGeometry = new THREE.PlaneGeometry(size * 1.2, size * 0.4);
                 // Fade in from invisible near character, peak in middle, fade out at end
-                const fadeIn = Math.min(1, i / 4);
+                const fadeIn = Math.min(1, i / 6);
                 const fadeOut = 1 - i / TRAIL_LENGTH;
                 const trailMaterial = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color().setHSL(0.0, 0.0, 0.75),
+                    color: new THREE.Color().setHSL(0.0, 0.0, 0.6),
                     transparent: true,
-                    opacity: 0.15 * fadeIn * fadeOut,
-                    depthWrite: false
+                    opacity: 0.1 * fadeIn * fadeOut,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
                 });
                 const particle = new THREE.Mesh(trailGeometry, trailMaterial);
+                particle.rotation.x = -Math.PI / 2; // lay flat on road
                 particle.position.copy(mannequinGroup.position);
                 scene.add(particle);
                 mannequinTrail.push(particle);
@@ -1494,11 +1495,11 @@
             });
 
             // Speed smoke — streams behind character at road level
-            const roadY = 0.3; // just above road surface
+            const roadY = 0.15; // just above road surface
             mannequinTrail[0].position.set(
                 mannequin.position.x,
                 roadY,
-                mannequin.position.z + 1.2
+                mannequin.position.z + 2.0
             );
             for (let i = 1; i < mannequinTrail.length; i++) {
                 const t = i / mannequinTrail.length;
@@ -1507,7 +1508,7 @@
                 // Stay pinned to road level
                 mannequinTrail[i].position.y = roadY;
                 // Trail further behind
-                mannequinTrail[i].position.z = mannequin.position.z + 1.2 + i * 0.35;
+                mannequinTrail[i].position.z = mannequin.position.z + 2.0 + i * 0.35;
                 // Subtle horizontal turbulence
                 mannequinTrail[i].position.x += Math.sin(time * 3 + i * 0.8) * 0.004 * i;
                 // Spread wider further back
@@ -1520,7 +1521,7 @@
         // WANDERING SOULS
         // ============================================
         const souls = [];
-        let soulSpawnInterval = 5000;
+        let soulSpawnInterval = 7000;
         let lastSoulSpawn = 0;
 
         function createSoulGeometry() {
@@ -2287,7 +2288,7 @@
                     collectibleSpawnInterval = Math.max(600, 1500 - (currentLevel - 1) * 100);
 
                     // Faster soul spawns
-                    soulSpawnInterval = Math.max(2500, 5000 - (currentLevel - 1) * 250);
+                    soulSpawnInterval = Math.max(3500, 7000 - (currentLevel - 1) * 350);
 
                     // Update visuals
                     updateRoadColor();
@@ -2535,7 +2536,7 @@
             targetSpeedMultiplier = 1.0;
             obstacleSpawnInterval = 2000;
             collectibleSpawnInterval = 1500;
-            soulSpawnInterval = 5000;
+            soulSpawnInterval = 7000;
             mannequinTargetX = 0;
             mannequinCurrentX = 0;
             isInvincible = false;
@@ -2588,7 +2589,6 @@
         function journeyComplete() {
             currentState = GameState.COMPLETE;
             document.getElementById('game-canvas').classList.remove('active');
-            document.body.classList.remove('playing');
             hideHUD();
 
             // Golden celebration flash
@@ -2633,7 +2633,6 @@
         function gameOver() {
             currentState = GameState.GAME_OVER;
             document.getElementById('game-canvas').classList.remove('active');
-            document.body.classList.remove('playing');
             hideHUD();
             stopAudio();
             showEndScreen(false);
